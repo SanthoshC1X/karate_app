@@ -17,8 +17,8 @@ class AppDatePicker {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.dark(
-            primary: AppColors.primary,
-            surface: AppColors.surface,
+            primary: AppColors.primaryDark,
+            surface: AppColors.primary,
             onSurface: AppColors.textPrimary,
           ),
           textTheme: Theme.of(ctx).textTheme.copyWith(
@@ -54,9 +54,9 @@ class AppDatePickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.field,
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.textHint.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.textHint),
         ),
         child: Row(
           children: [

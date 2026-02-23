@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/attendance_tile.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 
 class MyAttendanceScreen extends ConsumerWidget {
   const MyAttendanceScreen({super.key});
@@ -25,10 +26,7 @@ class MyAttendanceScreen extends ConsumerWidget {
         children: [
           // Stats header
           statsAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            loading: () => const _AttendanceStatsSkeleton(),
             error: (_, __) => const SizedBox(),
             data: (stats) {
               final total = stats['total'] ?? 0;
@@ -113,9 +111,7 @@ class MyAttendanceScreen extends ConsumerWidget {
           ),
           Expanded(
             child: attendanceAsync.when(
-              loading: () => const Center(
-                  child: CircularProgressIndicator(
-                      color: AppColors.primary)),
+              loading: () => const _AttendanceListSkeleton(),
               error: (e, _) => Center(
                   child: Text('$e',
                       style: AppText.m.copyWith(color: AppColors.error))),
@@ -175,6 +171,60 @@ class _StatRow extends StatelessWidget {
                 color: color,
                 fontWeight: FontWeight.bold)),
       ],
+    );
+  }
+}
+
+class _AttendanceStatsSkeleton extends StatelessWidget {
+  const _AttendanceStatsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: const Row(
+        children: [
+          AppSkeletonLoading(
+            width: 110,
+            height: 110,
+            borderRadius: BorderRadius.all(Radius.circular(55)),
+          ),
+          SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              children: [
+                AppSkeletonLoading(height: 12, width: double.infinity),
+                SizedBox(height: 10),
+                AppSkeletonLoading(height: 12, width: double.infinity),
+                SizedBox(height: 10),
+                AppSkeletonLoading(height: 12, width: double.infinity),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttendanceListSkeleton extends StatelessWidget {
+  const _AttendanceListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 6),
+      itemCount: 6,
+      itemBuilder: (_, __) => const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: AppSkeletonListItem(height: 74),
+      ),
     );
   }
 }

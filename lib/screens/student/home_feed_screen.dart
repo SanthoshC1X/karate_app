@@ -6,6 +6,7 @@ import '../../providers/post_provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/post_card.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
@@ -72,9 +73,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen>
         ),
       ),
       body: postsAsync.when(
-        loading: () => const Center(
-            child:
-                CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const _HomeFeedSkeleton(),
         error: (e, _) =>
             Center(child: Text('$e', style: AppText.m.copyWith(color: AppColors.error))),
         data: (posts) {
@@ -94,6 +93,53 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _HomeFeedSkeleton extends StatelessWidget {
+  const _HomeFeedSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      itemCount: 4,
+      itemBuilder: (_, __) => Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppSkeletonLoading(
+                  height: 180,
+                  width: double.infinity,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppSkeletonLoading(width: 90, height: 18),
+                      SizedBox(height: 10),
+                      AppSkeletonLoading(width: 220, height: 14),
+                      SizedBox(height: 8),
+                      AppSkeletonLoading(width: 160, height: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

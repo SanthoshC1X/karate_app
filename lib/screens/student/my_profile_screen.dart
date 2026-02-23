@@ -8,6 +8,9 @@ import '../../services/user_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/belt_badge.dart';
+import '../../widgets/common/app_dropdown.dart';
+import '../../widgets/common/app_snackbar.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/loading_overlay.dart';
 
 class MyProfileScreen extends ConsumerStatefulWidget {
@@ -70,16 +73,20 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
       await _loadProfile();
       if (mounted) {
         setState(() => _editing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Profile updated! ✓'),
-              backgroundColor: AppColors.success),
+        AppSnackbar.show(
+          context: context,
+          type: AppSnackbarType.success,
+          title: 'Success',
+          message: 'Profile updated successfully.',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: AppColors.error),
+        AppSnackbar.show(
+          context: context,
+          type: AppSnackbarType.error,
+          title: 'Error',
+          message: '$e',
         );
       }
     } finally {
@@ -102,7 +109,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        body: _MyProfileSkeleton(),
       );
     }
 
@@ -157,7 +164,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                               _profile!.name[0].toUpperCase(),
                               style: const TextStyle(
                                   fontSize: 38,
-                                  color: AppColors.textOnDark,
+                                  color: AppColors.onPrimary,
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -207,68 +214,32 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.field,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedBelt,
-                          dropdownColor: AppColors.field,
-                          style: const TextStyle(color: AppColors.textOnDark),
-                          icon: const Icon(Icons.keyboard_arrow_down,
-                              color: AppColors.textHint),
-                          isExpanded: true,
-                          items: UserModel.beltLevels
-                              .map((b) => DropdownMenuItem(
-                                    value: b,
-                                    child: Text(b),
-                                  ))
-                              .toList(),
-                          onChanged: (v) =>
-                              setState(() => _selectedBelt = v!),
-                        ),
-                      ),
+                    AppDropdown<String>(
+                      hint: 'Select belt level',
+                      value: _selectedBelt,
+                      items: UserModel.beltLevels,
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _selectedBelt = v);
+                        }
+                      },
                     ),
                     const SizedBox(height: 14),
                     locationsAsync.when(
-                      loading: () => const LinearProgressIndicator(),
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: AppSkeletonLoading(height: 46, width: double.infinity),
+                      ),
                       error: (_, __) => const SizedBox(),
-                      data: (locations) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.field,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<LocationModel>(
-                            value: _selectedLocation ??
-                                locations
-                                    .where((l) =>
-                                        l.id == _profile!.locationId)
-                                    .firstOrNull,
-                            dropdownColor: AppColors.field,
-                            style: const TextStyle(color: AppColors.textOnDark),
-                            icon: const Icon(Icons.keyboard_arrow_down,
-                                color: AppColors.textHint),
-                            isExpanded: true,
-                            hint: const Text('Select Location',
-                                style:
-                                    TextStyle(color: AppColors.textSecondary)),
-                            items: locations
-                                .map((l) => DropdownMenuItem(
-                                      value: l,
-                                      child: Text(l.name),
-                                    ))
-                                .toList(),
-                            onChanged: (v) =>
-                                setState(() => _selectedLocation = v),
-                          ),
-                        ),
+                      data: (locations) => AppDropdown<LocationModel>(
+                        hint: 'Select Location',
+                        value: _selectedLocation ??
+                            locations
+                                .where((l) => l.id == _profile!.locationId)
+                                .firstOrNull,
+                        items: locations,
+                        itemLabel: (l) => l.name,
+                        onChanged: (v) => setState(() => _selectedLocation = v),
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -280,6 +251,30 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                 ],
               ),
       ),
+    );
+  }
+}
+
+class _MyProfileSkeleton extends StatelessWidget {
+  const _MyProfileSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: const [
+        Center(
+          child: AppSkeletonLoading(
+            width: 90,
+            height: 90,
+            borderRadius: BorderRadius.all(Radius.circular(45)),
+          ),
+        ),
+        SizedBox(height: 12),
+        Center(child: AppSkeletonLoading(width: 90, height: 22)),
+        SizedBox(height: 28),
+        AppSkeletonLoading(height: 160, width: double.infinity),
+      ],
     );
   }
 }
@@ -348,4 +343,6 @@ class _Row extends StatelessWidget {
     );
   }
 }
+
+
 

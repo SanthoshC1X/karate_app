@@ -9,6 +9,7 @@ import '../../services/storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/loading_overlay.dart';
+import '../../widgets/common/app_snackbar.dart';
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   const CreatePostScreen({super.key});
@@ -49,8 +50,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.dark(
-            primary: AppColors.primary,
-            surface: AppColors.surface,
+            primary: AppColors.primaryDark,
+            surface: AppColors.primary,
           ),
         ),
         child: child!,
@@ -78,9 +79,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       );
       ref.invalidate(postsProvider);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Post created! ✓'), backgroundColor: AppColors.success),
+      AppSnackbar.show(
+        context: context,
+        type: AppSnackbarType.success,
+        title: 'Success',
+        message: 'Post created successfully.',
       );
       _titleCtrl.clear();
       _descCtrl.clear();
@@ -91,10 +94,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(e.toString().replaceAll('Exception: ', '')),
-              backgroundColor: AppColors.error),
+        AppSnackbar.show(
+          context: context,
+          type: AppSnackbarType.error,
+          title: 'Create Post Failed',
+          message: e.toString().replaceAll('Exception: ', ''),
         );
       }
     } finally {
@@ -314,4 +318,5 @@ class _TypeButton extends StatelessWidget {
     );
   }
 }
+
 

@@ -24,7 +24,7 @@ on conflict (id) do update set name = excluded.name;
 
 -- 2. USERS (extends Supabase auth)
 create table public.users (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id uuid primary key references auth.users(id) on delete cascade,4644
   name text not null,
   age int,
   belt_level text not null default 'White',

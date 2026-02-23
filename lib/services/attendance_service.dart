@@ -1,50 +1,53 @@
 import '../models/attendance_model.dart';
-import 'mock_api_store.dart';
+import 'api_client.dart';
 
 class AttendanceService {
-  final _store = MockApiStore.instance;
+  final _api = ApiClient.instance;
 
-  /// Mark or update attendance for a list of students on a given date.
   Future<void> markAttendance({
     required String locationId,
     required DateTime date,
-    required Map<String, bool> studentPresenceMap, // studentId -> isPresent
+    required Map<String, bool> studentPresenceMap,
   }) async {
-    await _store.upsertAttendance(
-      locationId: locationId,
-      date: date,
-      studentPresenceMap: studentPresenceMap,
-    );
+    await _api.put('/attendance/upsert', body: {
+      'location_id': locationId,
+      'date': date.toIso8601String().split('T')[0],
+      'student_presence_map': studentPresenceMap,
+    });
   }
 
-  /// Get all attendance for a specific date + location (for admin marking).
   Future<List<AttendanceModel>> getAttendanceByDateAndLocation({
     required String locationId,
     required DateTime date,
   }) async {
-    final data = await _store.getAttendanceByDateAndLocation(
-      locationId: locationId,
-      date: date,
-    );
-    return data.map(AttendanceModel.fromMap).toList();
+    final data = await _api.get('/attendance/by-date', query: {
+      'location_id': locationId,
+      'date': date.toIso8601String().split('T')[0],
+    }) as List<dynamic>;
+
+    return data
+        .map((item) => AttendanceModel.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
-  /// Get attendance history for one student.
   Future<List<AttendanceModel>> getStudentAttendance(String studentId) async {
-    final data = await _store.getStudentAttendance(studentId);
-    return data.map(AttendanceModel.fromMap).toList();
+    final data = await _api.get('/attendance/student/$studentId') as List<dynamic>;
+    return data
+        .map((item) => AttendanceModel.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
-  /// Get aggregate stats: total sessions and present count.
   Future<Map<String, int>> getStudentAttendanceStats(String studentId) async {
     final all = await getStudentAttendance(studentId);
     final presentCount = all.where((a) => a.isPresent).length;
     return {'total': all.length, 'present': presentCount};
   }
 
-  /// For admin: get ALL attendance (with student names).
   Future<List<AttendanceModel>> getAllAttendance() async {
-    final data = await _store.getAllAttendance();
-    return data.map(AttendanceModel.fromMap).toList();
+    final data = await _api.get('/attendance/all') as List<dynamic>;
+    return data
+        .map((item) => AttendanceModel.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 }
+

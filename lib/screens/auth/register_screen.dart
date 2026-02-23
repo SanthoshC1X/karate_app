@@ -6,6 +6,9 @@ import '../../providers/location_provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../widgets/common/app_dropdown.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
+import '../../widgets/common/app_snackbar.dart';
 import '../../widgets/loading_overlay.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -40,10 +43,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedLocationId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select your location'),
-            backgroundColor: AppColors.warning),
+      AppSnackbar.show(
+        context: context,
+        type: AppSnackbarType.pending,
+        title: 'Location Required',
+        message: 'Please select your location.',
       );
       return;
     }
@@ -62,11 +66,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       context.go('/student/home');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceAll('Exception: ', '')),
-          backgroundColor: AppColors.error,
-        ),
+      AppSnackbar.show(
+        context: context,
+        type: AppSnackbarType.error,
+        title: 'Registration Failed',
+        message: e.toString().replaceAll('Exception: ', ''),
       );
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -184,69 +188,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 14),
                 // Belt level
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.field,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedBelt,
-                      dropdownColor: AppColors.field,
-                      style: AppText.body,
-                      icon: const Icon(Icons.keyboard_arrow_down,
-                          color: AppColors.textHint),
-                      isExpanded: true,
-                      hint: const Text('Belt Level',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                      items: UserModel.beltLevels
-                          .map((b) => DropdownMenuItem(
-                                value: b,
-                                child: Text(b),
-                              ))
-                          .toList(),
-                      onChanged: (v) =>
-                          setState(() => _selectedBelt = v!),
-                    ),
-                  ),
+                AppDropdown<String>(
+                  hint: 'Belt Level',
+                  value: _selectedBelt,
+                  items: UserModel.beltLevels,
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _selectedBelt = v);
+                    }
+                  },
                 ),
                 const SizedBox(height: 14),
                 // Location picker
                 locationsAsync.when(
-                  loading: () => const LinearProgressIndicator(),
+                  loading: () => const AppSkeletonLoading(
+                    height: 46,
+                    width: double.infinity,
+                  ),
                   error: (e, _) => Text(
                     'Failed to load locations: $e',
                     style: const TextStyle(color: AppColors.error),
                   ),
-                  data: (locations) => Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.field,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedLocationId,
-                        dropdownColor: AppColors.field,
-                        style: AppText.body,
-                        icon: const Icon(Icons.keyboard_arrow_down,
-                            color: AppColors.textHint),
-                        isExpanded: true,
-                        hint: const Text('Select Location *',
-                            style: TextStyle(color: AppColors.textSecondary)),
-                        items: locations
-                            .map((loc) => DropdownMenuItem(
-                                  value: loc.id,
-                                  child: Text(loc.name),
-                                ))
-                            .toList(),
-                        onChanged: (v) =>
-                            setState(() => _selectedLocationId = v),
-                      ),
-                    ),
+                  data: (locations) => AppDropdown<String>(
+                    hint: 'Select Location *',
+                    value: _selectedLocationId,
+                    items: locations.map((loc) => loc.id).toList(),
+                    itemLabel: (id) =>
+                        locations.firstWhere((loc) => loc.id == id).name,
+                    onChanged: (v) => setState(() => _selectedLocationId = v),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -276,4 +245,5 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
+
 

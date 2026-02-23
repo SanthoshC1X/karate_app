@@ -9,8 +9,10 @@ import '../../services/user_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/step_card.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/belt_badge.dart';
 import '../../widgets/loading_overlay.dart';
+import '../../widgets/common/app_snackbar.dart';
 
 class MarkAttendanceScreen extends ConsumerStatefulWidget {
   const MarkAttendanceScreen({super.key});
@@ -49,8 +51,11 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: AppColors.error),
+        AppSnackbar.show(
+          context: context,
+          type: AppSnackbarType.error,
+          title: 'Error',
+          message: '$e',
         );
       }
     } finally {
@@ -67,11 +72,11 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
         studentPresenceMap: _presenceMap,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Attendance saved! ✓'),
-          backgroundColor: AppColors.success,
-        ),
+      AppSnackbar.show(
+        context: context,
+        type: AppSnackbarType.success,
+        title: 'Success',
+        message: 'Attendance saved successfully.',
       );
       setState(() {
         _step = 0;
@@ -82,8 +87,11 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: AppColors.error),
+        AppSnackbar.show(
+          context: context,
+          type: AppSnackbarType.error,
+          title: 'Error',
+          message: '$e',
         );
       }
     } finally {
@@ -100,8 +108,8 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
           colorScheme: const ColorScheme.dark(
-            primary: AppColors.primary,
-            surface: AppColors.surface,
+            primary: AppColors.primaryDark,
+            surface: AppColors.primary,
           ),
         ),
         child: child!,
@@ -195,9 +203,10 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
                           onBack: () => setState(() => _step = 0),
                         )
                       : _loading
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                  color: AppColors.primary))
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: _MarkStudentsSkeleton(),
+                            )
                           : _StepMark(
                               students: _students,
                               presenceMap: _presenceMap,
@@ -224,8 +233,11 @@ class _StepLocation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return locationsAsync.when(
-      loading: () =>
-          const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      loading: () => ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: 6,
+        itemBuilder: (_, __) => const AppSkeletonListItem(),
+      ),
       error: (e, _) =>
           Center(child: Text('$e', style: TextStyle(color: AppColors.error))),
       data: (locations) {
@@ -264,6 +276,18 @@ class _StepLocation extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _MarkStudentsSkeleton extends StatelessWidget {
+  const _MarkStudentsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: 6,
+      itemBuilder: (_, __) => const AppSkeletonListItem(height: 76),
     );
   }
 }
@@ -480,4 +504,6 @@ class _StepMark extends StatelessWidget {
     );
   }
 }
+
+
 

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../providers/post_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 
 class PostDetailScreen extends ConsumerWidget {
   final String postId;
@@ -17,9 +18,7 @@ class PostDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: postAsync.when(
-        loading: () => const Center(
-            child:
-                CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const _PostDetailSkeleton(),
         error: (e, _) =>
             Center(child: Text('$e', style: AppText.m.copyWith(color: AppColors.error))),
         data: (post) {
@@ -149,6 +148,52 @@ class PostDetailScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _PostDetailSkeleton extends StatelessWidget {
+  const _PostDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        const SliverToBoxAdapter(
+          child: AppSkeletonLoading(
+            height: 280,
+            width: double.infinity,
+            borderRadius: BorderRadius.zero,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Row(
+                  children: [
+                    AppSkeletonLoading(width: 96, height: 24),
+                    Spacer(),
+                    AppSkeletonLoading(width: 120, height: 12),
+                  ],
+                ),
+                SizedBox(height: 16),
+                AppSkeletonLoading(width: 260, height: 24),
+                SizedBox(height: 8),
+                AppSkeletonLoading(width: 150, height: 12),
+                SizedBox(height: 20),
+                AppSkeletonLoading(width: double.infinity, height: 12),
+                SizedBox(height: 8),
+                AppSkeletonLoading(width: double.infinity, height: 12),
+                SizedBox(height: 8),
+                AppSkeletonLoading(width: 220, height: 12),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

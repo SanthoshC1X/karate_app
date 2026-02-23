@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import 'app_skeleton_loading.dart';
 
 class AppPrimaryButton extends StatelessWidget {
   final String label;
@@ -24,10 +25,10 @@ class AppPrimaryButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onPressed,
         icon: icon == null ? const SizedBox.shrink() : Icon(icon, size: 18),
-        label: Text(label, style: AppText.r.copyWith(color: AppColors.textPrimary)),
+        label: Text(label, style: AppText.r.copyWith(color: AppColors.onPrimary)),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textPrimary,
+          foregroundColor: AppColors.onPrimary,
           disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -93,7 +94,7 @@ class AppLoadingButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textPrimary,
+          foregroundColor: AppColors.onPrimary,
           disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -103,12 +104,15 @@ class AppLoadingButton extends StatelessWidget {
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: AppColors.textPrimary,
+                child: AppSkeletonLoading(
+                  width: 20,
+                  height: 20,
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  baseColor: AppColors.blue9,
+                  highlightColor: AppColors.blue6,
                 ),
               )
-            : Text(label, style: AppText.r.copyWith(color: AppColors.textPrimary)),
+            : Text(label, style: AppText.r.copyWith(color: AppColors.onPrimary)),
       ),
     );
   }

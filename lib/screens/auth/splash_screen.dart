@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/brand_mark.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -38,6 +39,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
     final authService = AuthService();
+    await authService.init();
+    if (!mounted) return;
     if (authService.isLoggedIn) {
       try {
         final profile = await authService.getCurrentUserProfile();
@@ -48,6 +51,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           context.go('/student/home');
         }
       } catch (_) {
+        if (!mounted) return;
         context.go('/login');
       }
     } else {
@@ -91,12 +95,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               ),
               const SizedBox(height: 60),
               const SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                  strokeWidth: 2.5,
-                ),
+                width: 90,
+                child: AppSkeletonLoading(height: 10),
               ),
             ],
           ),

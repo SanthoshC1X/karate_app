@@ -5,7 +5,9 @@ import '../../providers/location_provider.dart';
 import '../../services/location_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/step_card.dart';
+import '../../widgets/common/app_snackbar.dart';
 
 class LocationsScreen extends ConsumerStatefulWidget {
   const LocationsScreen({super.key});
@@ -100,8 +102,11 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
                 ref.invalidate(locationsProvider);
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+                  AppSnackbar.show(
+                    context: context,
+                    type: AppSnackbarType.error,
+                    title: 'Save Failed',
+                    message: e.toString(),
                   );
                 }
               }
@@ -156,13 +161,12 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showLocationDialog(),
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: AppColors.textOnDark),
+        icon: const Icon(Icons.add, color: AppColors.onPrimary),
         label: const Text('Add Location',
-            style: TextStyle(color: AppColors.textOnDark, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold)),
       ),
       body: locationsAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const _LocationsSkeleton(),
         error: (e, _) => Center(
           child: Text('Error: $e', style: const TextStyle(color: AppColors.error)),
         ),
@@ -203,7 +207,7 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(Icons.delete_outline,
-                        color: AppColors.textOnDark, size: 28),
+                        color: AppColors.onDanger, size: 28),
                   ),
                   confirmDismiss: (_) async {
                     await _deleteLocation(loc);
@@ -234,4 +238,18 @@ class _LocationsScreenState extends ConsumerState<LocationsScreen> {
     );
   }
 }
+
+class _LocationsSkeleton extends StatelessWidget {
+  const _LocationsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      itemCount: 7,
+      itemBuilder: (_, __) => const AppSkeletonListItem(),
+    );
+  }
+}
+
 

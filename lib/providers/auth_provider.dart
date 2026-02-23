@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
-import '../services/mock_api_store.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
@@ -9,15 +8,15 @@ final authUserProvider = StreamProvider<UserModel?>((ref) async* {
   final authService = ref.read(authServiceProvider);
   await for (final state in authService.authStateChanges) {
     final event = state.event;
-    final isSignedIn = event == MockAuthChangeEvent.signedIn ||
-        event == MockAuthChangeEvent.initialSession;
+    final isSignedIn = event == AuthChangeEvent.signedIn ||
+        event == AuthChangeEvent.initialSession;
     if (isSignedIn) {
       try {
         yield await authService.getCurrentUserProfile();
       } catch (_) {
         yield null;
       }
-    } else if (event == MockAuthChangeEvent.signedOut) {
+    } else if (event == AuthChangeEvent.signedOut) {
       yield null;
     }
   }

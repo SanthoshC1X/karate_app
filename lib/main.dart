@@ -16,16 +16,24 @@ class KarateApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
+      surface: AppColors.surface,
+      onSurface: AppColors.textPrimary,
+      error: AppColors.error,
+    );
+
     return MaterialApp.router(
       title: 'Karate Class',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          brightness: Brightness.dark,
-        ),
-        textTheme: GoogleFonts.figtreeTextTheme(ThemeData.dark().textTheme).copyWith(
+        colorScheme: colorScheme,
+        textTheme: GoogleFonts.figtreeTextTheme(ThemeData.light().textTheme).copyWith(
           headlineLarge: AppText.h1,
           headlineMedium: AppText.h2,
           bodyLarge: AppText.r,
@@ -57,12 +65,12 @@ class KarateApp extends ConsumerWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textPrimary,
+            foregroundColor: AppColors.onPrimary,
             minimumSize: const Size(double.infinity, 50),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            textStyle: AppText.r.copyWith(color: AppColors.textPrimary),
+            textStyle: AppText.r.copyWith(color: AppColors.onPrimary),
           ),
         ),
         cardTheme: CardThemeData(

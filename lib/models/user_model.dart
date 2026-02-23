@@ -29,7 +29,7 @@ class UserModel {
     required this.createdAt,
   });
 
-  bool get isAdmin => role == 'admin';
+  bool get isAdmin => role == 'admin' || role == 'super_admin';
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(

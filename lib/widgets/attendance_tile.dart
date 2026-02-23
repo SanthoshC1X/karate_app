@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/attendance_model.dart';
+import '../theme/app_colors.dart';
 
 class AttendanceTile extends StatelessWidget {
   final AttendanceModel attendance;
@@ -18,8 +19,8 @@ class AttendanceTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: attendance.isPresent
-              ? Colors.green.withValues(alpha:0.4)
-              : Colors.red.withValues(alpha:0.4),
+              ? AppColors.success.withValues(alpha:0.4)
+              : AppColors.error.withValues(alpha:0.4),
           width: 1.2,
         ),
       ),
@@ -31,12 +32,12 @@ class AttendanceTile extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: attendance.isPresent
-                  ? Colors.green.withValues(alpha:0.15)
-                  : Colors.red.withValues(alpha:0.15),
+                  ? AppColors.success.withValues(alpha:0.15)
+                  : AppColors.error.withValues(alpha:0.15),
             ),
             child: Icon(
               attendance.isPresent ? Icons.check : Icons.close,
-              color: attendance.isPresent ? Colors.green : Colors.red,
+              color: attendance.isPresent ? AppColors.success : AppColors.error,
               size: 22,
             ),
           ),
@@ -64,7 +65,7 @@ class AttendanceTile extends StatelessWidget {
             attendance.isPresent ? 'Present' : 'Absent',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: attendance.isPresent ? Colors.green : Colors.red,
+              color: attendance.isPresent ? AppColors.success : AppColors.error,
               fontSize: 13,
             ),
           ),

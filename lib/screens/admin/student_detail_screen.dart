@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/belt_badge.dart';
 import '../../widgets/attendance_tile.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
   final String studentId;
@@ -21,9 +22,7 @@ class StudentDetailScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: studentAsync.when(
-        loading: () => const Center(
-            child:
-                CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const _StudentDetailSkeleton(),
         error: (e, _) =>
             Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
         data: (student) {
@@ -57,12 +56,12 @@ class StudentDetailScreen extends ConsumerWidget {
                         CircleAvatar(
                           radius: 40,
                           backgroundColor:
-                              AppColors.textOnDark.withValues(alpha:0.15),
+                              AppColors.onPrimary.withValues(alpha:0.15),
                           child: Text(
                             student.name[0].toUpperCase(),
                             style: const TextStyle(
                                 fontSize: 36,
-                                color: AppColors.textOnDark,
+                                color: AppColors.onPrimary,
                                 fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -72,7 +71,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           style: AppText.titleMd.copyWith(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textOnDark),
+                              color: AppColors.onPrimary),
                         ),
                         const SizedBox(height: 6),
                         BeltBadge(beltLevel: student.beltLevel),
@@ -99,8 +98,10 @@ class StudentDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 20),
                       // Attendance stats
                       statsAsync.when(
-                        loading: () => const LinearProgressIndicator(
-                            color: AppColors.primary),
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: AppSkeletonLoading(height: 92, width: double.infinity),
+                        ),
                         error: (_, __) => const SizedBox(),
                         data: (stats) {
                           final total = stats['total'] ?? 0;
@@ -153,11 +154,18 @@ class StudentDetailScreen extends ConsumerWidget {
                 ),
               ),
               attendanceAsync.when(
-                loading: () => const SliverToBoxAdapter(
-                    child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(
-                            color: AppColors.primary))),
+                loading: () => SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: const [
+                        AppSkeletonListItem(height: 74),
+                        AppSkeletonListItem(height: 74),
+                        AppSkeletonListItem(height: 74),
+                      ],
+                    ),
+                  ),
+                ),
                 error: (e, _) => SliverToBoxAdapter(
                     child: Center(child: Text('$e',
                         style: const TextStyle(color: AppColors.error)))),
@@ -184,6 +192,56 @@ class StudentDetailScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _StudentDetailSkeleton extends StatelessWidget {
+  const _StudentDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        const SliverToBoxAdapter(
+          child: AppSkeletonLoading(
+            height: 220,
+            width: double.infinity,
+            borderRadius: BorderRadius.zero,
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                AppSkeletonLoading(width: 210, height: 14),
+                SizedBox(height: 12),
+                AppSkeletonLoading(width: 170, height: 14),
+                SizedBox(height: 12),
+                AppSkeletonLoading(width: 140, height: 14),
+                SizedBox(height: 20),
+                AppSkeletonLoading(height: 92, width: double.infinity),
+                SizedBox(height: 24),
+                AppSkeletonLoading(width: 160, height: 16),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                AppSkeletonListItem(height: 74),
+                AppSkeletonListItem(height: 74),
+                AppSkeletonListItem(height: 74),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,12 +1,14 @@
 import '../models/location_model.dart';
-import 'mock_api_store.dart';
+import 'api_client.dart';
 
 class LocationService {
-  final _store = MockApiStore.instance;
+  final _api = ApiClient.instance;
 
   Future<List<LocationModel>> getLocations() async {
-    final data = await _store.getLocations();
-    return data.map(LocationModel.fromMap).toList();
+    final data = await _api.get('/locations') as List<dynamic>;
+    return data
+        .map((item) => LocationModel.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<LocationModel> addLocation({
@@ -14,19 +16,20 @@ class LocationService {
     String? address,
     String? notes,
   }) async {
-    final data = await _store.addLocation(
-      name: name,
-      address: address,
-      notes: notes,
-    );
+    final data = await _api.post('/locations', body: {
+      'name': name,
+      'address': address,
+      'notes': notes,
+    }) as Map<String, dynamic>;
     return LocationModel.fromMap(data);
   }
 
   Future<void> updateLocation(String id, Map<String, dynamic> updates) async {
-    await _store.updateLocation(id, updates);
+    await _api.patch('/locations/$id', body: updates);
   }
 
   Future<void> deleteLocation(String id) async {
-    await _store.deleteLocation(id);
+    await _api.delete('/locations/$id');
   }
 }
+

@@ -39,7 +39,7 @@ class BrandMark extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Icon(
             Icons.sports_martial_arts,
-            color: AppColors.textPrimary,
+            color: AppColors.onPrimary,
             size: iconSize,
           ),
         ),

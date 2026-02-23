@@ -12,19 +12,19 @@ class BeltBadge extends StatelessWidget {
       case 'white':
         return AppColors.textPrimary;
       case 'yellow':
-        return const Color(0xFFFDD835);
+        return AppColors.warning.withValues(alpha: 0.2);
       case 'orange':
-        return Colors.orange;
+        return AppColors.skin8.withValues(alpha: 0.2);
       case 'green':
-        return Colors.green;
+        return AppColors.success.withValues(alpha: 0.2);
       case 'blue':
-        return Colors.blue;
+        return AppColors.primary;
       case 'brown':
-        return const Color(0xFF795548);
+        return AppColors.skin10;
       case 'black':
-        return Colors.black87;
+        return AppColors.text1;
       default:
-        return Colors.grey;
+        return AppColors.white8;
     }
   }
 
@@ -32,7 +32,7 @@ class BeltBadge extends StatelessWidget {
     switch (beltLevel.toLowerCase()) {
       case 'white':
       case 'yellow':
-        return Colors.black87;
+        return AppColors.text1;
       default:
         return AppColors.textPrimary;
     }
@@ -46,7 +46,7 @@ class BeltBadge extends StatelessWidget {
         color: _beltColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.black26,
+          color: AppColors.border,
           width: 0.5,
         ),
         boxShadow: [

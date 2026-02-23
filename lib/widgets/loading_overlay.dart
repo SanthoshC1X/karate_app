@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import 'common/app_skeleton_loading.dart';
 
 class LoadingOverlay extends StatelessWidget {
   final bool isLoading;
@@ -20,7 +22,7 @@ class LoadingOverlay extends StatelessWidget {
         if (isLoading)
           Positioned.fill(
             child: Container(
-              color: Colors.black54,
+              color: AppColors.black54,
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -32,7 +34,15 @@ class LoadingOverlay extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CircularProgressIndicator(),
+                      const AppSkeletonLoading(
+                        width: 140,
+                        height: 14,
+                      ),
+                      const SizedBox(height: 10),
+                      const AppSkeletonLoading(
+                        width: 110,
+                        height: 10,
+                      ),
                       if (message != null) ...[
                         const SizedBox(height: 16),
                         Text(

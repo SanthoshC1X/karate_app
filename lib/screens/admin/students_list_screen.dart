@@ -7,6 +7,7 @@ import '../../providers/location_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/belt_badge.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/step_card.dart';
 
 class StudentsListScreen extends ConsumerStatefulWidget {
@@ -55,7 +56,20 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
           ),
           const SizedBox(height: 10),
           locationsAsync.when(
-            loading: () => const SizedBox(),
+            loading: () => SizedBox(
+              height: 38,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: const [
+                  AppSkeletonLoading(width: 70, height: 32),
+                  SizedBox(width: 8),
+                  AppSkeletonLoading(width: 90, height: 32),
+                  SizedBox(width: 8),
+                  AppSkeletonLoading(width: 90, height: 32),
+                ],
+              ),
+            ),
             error: (_, __) => const SizedBox(),
             data: (locations) => SizedBox(
               height: 38,
@@ -105,8 +119,10 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
           const SizedBox(height: 8),
           Expanded(
             child: allStudentsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+              loading: () => ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                itemCount: 7,
+                itemBuilder: (_, __) => const AppSkeletonListItem(),
               ),
               error: (e, _) => Center(
                 child: Text(

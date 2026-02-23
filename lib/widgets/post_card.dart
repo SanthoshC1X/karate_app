@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/post_model.dart';
+import '../theme/app_colors.dart';
+import 'common/app_skeleton_loading.dart';
 
 class PostCard extends StatelessWidget {
   final PostModel post;
@@ -21,7 +23,7 @@ class PostCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.12),
+              color: AppColors.overlay,
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -42,7 +44,15 @@ class PostCard extends StatelessWidget {
                   placeholder: (_, __) => Container(
                     height: 180,
                     color: theme.colorScheme.surfaceContainerHighest,
-                    child: const Center(child: CircularProgressIndicator()),
+                    child: const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: AppSkeletonLoading(
+                        height: 156,
+                        width: double.infinity,
+                        borderRadius:
+                            BorderRadius.all(Radius.circular(10)),
+                      ),
+                    ),
                   ),
                   errorWidget: (_, __, ___) => Container(
                     height: 180,

@@ -1,26 +1,37 @@
 import '../models/user_model.dart';
-import 'mock_api_store.dart';
+import 'api_client.dart';
 
 class UserService {
-  final _store = MockApiStore.instance;
+  final _api = ApiClient.instance;
 
   Future<List<UserModel>> getAllStudents() async {
-    final data = await _store.getUsers(role: 'student');
-    return data.map(UserModel.fromMap).toList();
+    final data = await _api.get('/users', query: {'role': 'student'}) as List<dynamic>;
+    return data
+        .map((item) => UserModel.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<UserModel>> getStudentsByLocation(String locationId) async {
-    final data = await _store.getUsers(role: 'student', locationId: locationId);
-    return data.map(UserModel.fromMap).toList();
+    final data = await _api.get('/users', query: {
+      'role': 'student',
+      'location_id': locationId,
+    }) as List<dynamic>;
+    return data
+        .map((item) => UserModel.fromMap(item as Map<String, dynamic>))
+        .toList();
   }
 
   Future<UserModel?> getStudentById(String id) async {
-    final data = _store.getUserById(id);
-    if (data == null) return null;
-    return UserModel.fromMap(data);
+    try {
+      final data = await _api.get('/users/$id') as Map<String, dynamic>;
+      return UserModel.fromMap(data);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> updateStudent(String id, Map<String, dynamic> updates) async {
-    await _store.updateUser(id, updates);
+    await _api.patch('/users/$id', body: updates);
   }
 }
+

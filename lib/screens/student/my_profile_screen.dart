@@ -1,0 +1,351 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/user_model.dart';
+import '../../models/location_model.dart';
+import '../../providers/location_provider.dart';
+import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text.dart';
+import '../../widgets/belt_badge.dart';
+import '../../widgets/loading_overlay.dart';
+
+class MyProfileScreen extends ConsumerStatefulWidget {
+  const MyProfileScreen({super.key});
+
+  @override
+  ConsumerState<MyProfileScreen> createState() => _MyProfileScreenState();
+}
+
+class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
+  UserModel? _profile;
+  bool _loading = true;
+  bool _saving = false;
+  bool _editing = false;
+
+  final _nameCtrl = TextEditingController();
+  final _ageCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  String _selectedBelt = 'White';
+  LocationModel? _selectedLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _loading = true);
+    try {
+      final profile = await AuthService().getCurrentUserProfile();
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          if (profile != null) {
+            _nameCtrl.text = profile.name;
+            _ageCtrl.text = profile.age?.toString() ?? '';
+            _phoneCtrl.text = profile.phone ?? '';
+            _selectedBelt = profile.beltLevel;
+          }
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _save() async {
+    final uid = AuthService().currentUserId;
+    if (uid == null) return;
+    setState(() => _saving = true);
+    try {
+      await UserService().updateStudent(uid, {
+        'name': _nameCtrl.text.trim(),
+        'age': int.tryParse(_ageCtrl.text),
+        'phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        'belt_level': _selectedBelt,
+        'location_id': _selectedLocation?.id ?? _profile?.locationId,
+      });
+      await _loadProfile();
+      if (mounted) {
+        setState(() => _editing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Profile updated! ✓'),
+              backgroundColor: AppColors.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _ageCtrl.dispose();
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final locationsAsync = ref.watch(locationsProvider);
+
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
+    }
+
+    return LoadingOverlay(
+      isLoading: _saving,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: Text('My Profile',
+              style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
+          actions: [
+            IconButton(
+              icon: Icon(_editing ? Icons.close : Icons.edit_outlined),
+              onPressed: () => setState(() => _editing = !_editing),
+            ),
+            if (_editing)
+              TextButton(
+                onPressed: _save,
+                child: const Text('Save',
+                    style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold)),
+              ),
+          ],
+        ),
+        body: _profile == null
+            ? const Center(
+                child: Text('No profile found',
+                    style: TextStyle(color: AppColors.textSecondary)))
+            : ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  // Avatar
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const RadialGradient(
+                              colors: [
+                                AppColors.primary,
+                                AppColors.primaryDark
+                              ],
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _profile!.name[0].toUpperCase(),
+                              style: const TextStyle(
+                                  fontSize: 38,
+                                  color: AppColors.textOnDark,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(child: BeltBadge(beltLevel: _profile!.beltLevel)),
+                  const SizedBox(height: 28),
+                  if (!_editing) ...[
+                    _ProfileInfoCard(profile: _profile!),
+                  ] else ...[
+                    // Edit form
+                    TextFormField(
+                      controller: _nameCtrl,
+                      style: const TextStyle(color: AppColors.textOnDark),
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                        labelStyle: TextStyle(color: AppColors.textOnDark54),
+                        prefixIcon: Icon(Icons.person_outline,
+                            color: AppColors.textOnDark38),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _ageCtrl,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: AppColors.textOnDark),
+                      decoration: const InputDecoration(
+                        labelText: 'Age',
+                        labelStyle: TextStyle(color: AppColors.textOnDark54),
+                        prefixIcon: Icon(Icons.cake_outlined,
+                            color: AppColors.textOnDark38),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(color: AppColors.textOnDark),
+                      decoration: const InputDecoration(
+                        labelText: 'Phone',
+                        labelStyle: TextStyle(color: AppColors.textOnDark54),
+                        prefixIcon: Icon(Icons.phone_outlined,
+                            color: AppColors.textOnDark38),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.field,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedBelt,
+                          dropdownColor: AppColors.field,
+                          style: const TextStyle(color: AppColors.textOnDark),
+                          icon: const Icon(Icons.keyboard_arrow_down,
+                              color: AppColors.textHint),
+                          isExpanded: true,
+                          items: UserModel.beltLevels
+                              .map((b) => DropdownMenuItem(
+                                    value: b,
+                                    child: Text(b),
+                                  ))
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedBelt = v!),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    locationsAsync.when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, __) => const SizedBox(),
+                      data: (locations) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.field,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<LocationModel>(
+                            value: _selectedLocation ??
+                                locations
+                                    .where((l) =>
+                                        l.id == _profile!.locationId)
+                                    .firstOrNull,
+                            dropdownColor: AppColors.field,
+                            style: const TextStyle(color: AppColors.textOnDark),
+                            icon: const Icon(Icons.keyboard_arrow_down,
+                                color: AppColors.textHint),
+                            isExpanded: true,
+                            hint: const Text('Select Location',
+                                style:
+                                    TextStyle(color: AppColors.textSecondary)),
+                            items: locations
+                                .map((l) => DropdownMenuItem(
+                                      value: l,
+                                      child: Text(l.name),
+                                    ))
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => _selectedLocation = v),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    ElevatedButton(
+                      onPressed: _save,
+                      child: const Text('Save Changes'),
+                    ),
+                  ],
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _ProfileInfoCard extends StatelessWidget {
+  final UserModel profile;
+  const _ProfileInfoCard({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        children: [
+          _Row(icon: Icons.person, label: 'Name', value: profile.name),
+          const Divider(color: AppColors.borderLight),
+          _Row(
+              icon: Icons.cake_outlined,
+              label: 'Age',
+              value: profile.age?.toString() ?? 'Not set'),
+          const Divider(color: AppColors.borderLight),
+          _Row(
+              icon: Icons.phone_outlined,
+              label: 'Phone',
+              value: profile.phone ?? 'Not set'),
+          const Divider(color: AppColors.borderLight),
+          _Row(
+              icon: Icons.sports_martial_arts,
+              label: 'Belt',
+              value: profile.beltLevel),
+        ],
+      ),
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _Row({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Text(label,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          const Spacer(),
+          Text(value,
+              style: const TextStyle(
+                  color: AppColors.textOnDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14)),
+        ],
+      ),
+    );
+  }
+}
+

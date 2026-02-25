@@ -61,6 +61,8 @@ class AuthProvider extends ChangeNotifier {
     required String beltLevel,
     String? phone,
     String? locationId,
+    List<String>? masterIds,
+    List<String>? classIds,
   }) async {
     _isLoading = true;
     _error = null;
@@ -74,6 +76,45 @@ class AuthProvider extends ChangeNotifier {
         beltLevel: beltLevel,
         phone: phone,
         locationId: locationId,
+        masterIds: masterIds,
+        classIds: classIds,
+      );
+      _currentUser = user;
+      return user;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<UserModel> signUpMaster({
+    required String email,
+    required String password,
+    required String name,
+    String? phone,
+    String? bio,
+    required List<String> locationIds,
+    List<Map<String, String?>>? newLocations,
+    List<String>? classIds,
+    List<Map<String, String?>>? newClasses,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final user = await _service.signUpMaster(
+        email: email,
+        password: password,
+        name: name,
+        phone: phone,
+        bio: bio,
+        locationIds: locationIds,
+        newLocations: newLocations,
+        classIds: classIds,
+        newClasses: newClasses,
       );
       _currentUser = user;
       return user;

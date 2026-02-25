@@ -46,7 +46,8 @@ class _SplashScreenState extends State<SplashScreen>
         await authProvider.loadProfile();
         final profile = authProvider.currentUser;
         if (!mounted) return;
-        if (profile != null && profile.isAdmin) {
+        if (profile != null &&
+            (profile.member == 'master' || profile.member == 'super_admin')) {
           context.go('/admin/dashboard');
         } else {
           context.go('/student/home');

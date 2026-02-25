@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/register_master_screen.dart';
 import 'screens/admin/admin_shell.dart';
 import 'screens/admin/dashboard_screen.dart';
 import 'screens/admin/locations_screen.dart';
@@ -22,6 +23,7 @@ final appRouter = GoRouter(
     final isLoggedIn = AuthService().isLoggedIn;
     final isAuthRoute = state.matchedLocation == '/login' ||
         state.matchedLocation == '/register' ||
+        state.matchedLocation == '/register-master' ||
         state.matchedLocation == '/splash';
     if (!isLoggedIn && !isAuthRoute) return '/splash';
     return null;
@@ -38,6 +40,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/register',
       builder: (_, __) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/register-master',
+      builder: (_, __) => const RegisterMasterScreen(),
     ),
     ShellRoute(
       builder: (context, state, child) => AdminShell(child: child),

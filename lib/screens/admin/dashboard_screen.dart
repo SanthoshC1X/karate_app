@@ -33,9 +33,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     final users = context.watch<UserProvider>();
     final locations = context.watch<LocationProvider>();
     final posts = context.watch<PostProvider>();
+    final isSuperAdmin = auth.currentUser?.member == 'super_admin';
+    final heading = isSuperAdmin ? 'Super Admin Dashboard' : 'Master Dashboard';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -44,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Admin Dashboard',
+              heading,
               style: AppText.r.copyWith(
                 fontWeight: FontWeight.w800,
                 fontSize: 18,

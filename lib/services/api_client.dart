@@ -26,11 +26,11 @@ class ApiClient {
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'http://192.168.1.80:4000';
+        return 'http://192.168.1.6:4000';
       case TargetPlatform.iOS:
         return 'http://localhost:4000';
       default:
-        return 'http://192.168.1.80:4000';
+        return 'http://192.168.1.6:4000';
     }
   }
 
@@ -48,6 +48,7 @@ class ApiClient {
 
   Map<String, String> _headers({bool withAuth = true}) {
     return {
+      'Content-Type': 'application/json',
       if (withAuth && _token != null) 'Authorization': 'Bearer $_token',
     };
   }
@@ -69,7 +70,7 @@ class ApiClient {
     try {
       final response = await _dio.post<dynamic>(
         _normalizePath(path),
-        data: body == null ? null : jsonEncode(body),
+        data: body,
         options: Options(headers: _headers()),
       );
       return _handleResponse(response.data);
@@ -82,7 +83,7 @@ class ApiClient {
     try {
       final response = await _dio.put<dynamic>(
         _normalizePath(path),
-        data: body == null ? null : jsonEncode(body),
+        data: body,
         options: Options(headers: _headers()),
       );
       return _handleResponse(response.data);
@@ -95,7 +96,7 @@ class ApiClient {
     try {
       final response = await _dio.patch<dynamic>(
         _normalizePath(path),
-        data: body == null ? null : jsonEncode(body),
+        data: body,
         options: Options(headers: _headers()),
       );
       return _handleResponse(response.data);

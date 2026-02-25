@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordCtrl.text,
       );
       if (!mounted) return;
-      if (user.isAdmin) {
+      if (user.member == 'master' || user.member == 'super_admin') {
         context.go('/admin/dashboard');
       } else {
         context.go('/student/home');
@@ -236,7 +236,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(color: AppColors.textSecondary),
                           ),
                           GestureDetector(
-                            onTap: () => context.go('/register'),
+                            onTap: () => context.go(
+                              isMaster ? '/register-master' : '/register',
+                            ),
                             child: Text('Register', style: AppText.cta),
                           ),
                         ],
@@ -252,5 +254,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
 

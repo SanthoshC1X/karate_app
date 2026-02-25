@@ -1,12 +1,21 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 
 class ApiClient {
   ApiClient._();
 
   static final ApiClient instance = ApiClient._();
+  late final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: _baseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 20),
+      responseType: ResponseType.json,
+      headers: const {'Content-Type': 'application/json'},
+    ),
+  );
 
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
 
@@ -33,68 +42,108 @@ class ApiClient {
 
   String? get token => _token;
 
-  Uri _uri(String path, [Map<String, String>? query]) {
-    final normalizedPath = path.startsWith('/') ? path : '/$path';
-    return Uri.parse('$_baseUrl$normalizedPath').replace(queryParameters: query);
+  String _normalizePath(String path) {
+    return path.startsWith('/') ? path : '/$path';
   }
 
-  Map<String, String> _headers({bool withJson = true, bool withAuth = true}) {
+  Map<String, String> _headers({bool withAuth = true}) {
     return {
-      if (withJson) 'Content-Type': 'application/json',
       if (withAuth && _token != null) 'Authorization': 'Bearer $_token',
     };
   }
 
   Future<dynamic> get(String path, {Map<String, String>? query}) async {
-    final response = await http.get(_uri(path, query), headers: _headers());
-    return _handleResponse(response);
+    try {
+      final response = await _dio.get<dynamic>(
+        _normalizePath(path),
+        queryParameters: query,
+        options: Options(headers: _headers()),
+      );
+      return _handleResponse(response.data);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    }
   }
 
   Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
-    final response = await http.post(
-      _uri(path),
-      headers: _headers(),
-      body: body == null ? null : jsonEncode(body),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await _dio.post<dynamic>(
+        _normalizePath(path),
+        data: body == null ? null : jsonEncode(body),
+        options: Options(headers: _headers()),
+      );
+      return _handleResponse(response.data);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    }
   }
 
   Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
-    final response = await http.put(
-      _uri(path),
-      headers: _headers(),
-      body: body == null ? null : jsonEncode(body),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await _dio.put<dynamic>(
+        _normalizePath(path),
+        data: body == null ? null : jsonEncode(body),
+        options: Options(headers: _headers()),
+      );
+      return _handleResponse(response.data);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    }
   }
 
   Future<dynamic> patch(String path, {Map<String, dynamic>? body}) async {
-    final response = await http.patch(
-      _uri(path),
-      headers: _headers(),
-      body: body == null ? null : jsonEncode(body),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await _dio.patch<dynamic>(
+        _normalizePath(path),
+        data: body == null ? null : jsonEncode(body),
+        options: Options(headers: _headers()),
+      );
+      return _handleResponse(response.data);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    }
   }
 
   Future<dynamic> delete(String path) async {
-    final response = await http.delete(_uri(path), headers: _headers());
-    return _handleResponse(response);
+    try {
+      final response = await _dio.delete<dynamic>(
+        _normalizePath(path),
+        options: Options(headers: _headers()),
+      );
+      return _handleResponse(response.data);
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    }
   }
 
-  dynamic _handleResponse(http.Response response) {
-    if (response.statusCode == 204 || response.body.isEmpty) {
+  dynamic _handleResponse(dynamic data) {
+    if (data == null) {
       return null;
     }
 
-    final decoded = jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return decoded;
+    return data;
+  }
+
+  String _extractErrorMessage(DioException e) {
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      return data['message']?.toString() ?? 'Request failed';
+    }
+    if (data is String && data.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) {
+          return decoded['message']?.toString() ?? 'Request failed';
+        }
+      } catch (_) {
+        return data;
+      }
     }
 
-    final message = decoded is Map<String, dynamic>
-        ? (decoded['message']?.toString() ?? 'Request failed')
-        : 'Request failed';
-    throw Exception(message);
+    if (e.type == DioExceptionType.connectionError) {
+      return 'Unable to connect to server';
+    }
+
+    return e.message ?? 'Request failed';
   }
 }

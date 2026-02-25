@@ -10,7 +10,7 @@ class BeltBadge extends StatelessWidget {
   Color get _beltColor {
     switch (beltLevel.toLowerCase()) {
       case 'white':
-        return AppColors.textPrimary;
+        return AppColors.white1;
       case 'yellow':
         return AppColors.warning.withValues(alpha: 0.2);
       case 'orange':

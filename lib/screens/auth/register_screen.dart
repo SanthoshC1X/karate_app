@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../providers/location_provider.dart';
-import '../../services/auth_service.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/app_dropdown.dart';
@@ -11,14 +11,14 @@ import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/app_snackbar.dart';
 import '../../widgets/loading_overlay.dart';
 
-class RegisterScreen extends ConsumerStatefulWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -29,6 +29,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   String? _selectedLocationId;
   bool _obscure = true;
   bool _loading = false;
+  bool _locationsLoading = true;
+  String? _locationsError;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final locationProvider = context.read<LocationProvider>();
+      await locationProvider.fetchLocations();
+      if (!mounted) return;
+      setState(() {
+        _locationsLoading = locationProvider.isLoading;
+        _locationsError = locationProvider.error;
+      });
+    });
+  }
 
   @override
   void dispose() {
@@ -53,7 +69,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
     setState(() => _loading = true);
     try {
-      await AuthService().signUp(
+      await context.read<AuthProvider>().signUp(
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
         name: _nameCtrl.text.trim(),
@@ -80,7 +96,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locationsAsync = ref.watch(locationsProvider);
+    final locationProvider = context.watch<LocationProvider>();
+    final locations = locationProvider.locations;
 
     return LoadingOverlay(
       isLoading: _loading,
@@ -200,16 +217,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 14),
                 // Location picker
-                locationsAsync.when(
-                  loading: () => const AppSkeletonLoading(
+                if (_locationsLoading || locationProvider.isLoading)
+                  const AppSkeletonLoading(
                     height: 46,
                     width: double.infinity,
-                  ),
-                  error: (e, _) => Text(
-                    'Failed to load locations: $e',
+                  )
+                else if ((_locationsError ?? locationProvider.error) != null)
+                  Text(
+                    'Failed to load locations: ${_locationsError ?? locationProvider.error}',
                     style: const TextStyle(color: AppColors.error),
-                  ),
-                  data: (locations) => AppDropdown<String>(
+                  )
+                else
+                  AppDropdown<String>(
                     hint: 'Select Location *',
                     value: _selectedLocationId,
                     items: locations.map((loc) => loc.id).toList(),
@@ -217,7 +236,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         locations.firstWhere((loc) => loc.id == id).name,
                     onChanged: (v) => setState(() => _selectedLocationId = v),
                   ),
-                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _register,

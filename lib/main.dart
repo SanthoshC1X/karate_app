@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'providers/attendance_provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/location_provider.dart';
+import 'providers/post_provider.dart';
+import 'providers/user_provider.dart';
 import 'router.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_text.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: KarateApp()));
+  runApp(const KarateApp());
 }
 
-class KarateApp extends ConsumerWidget {
+class KarateApp extends StatelessWidget {
   const KarateApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
+  Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       brightness: Brightness.light,
@@ -27,67 +31,76 @@ class KarateApp extends ConsumerWidget {
       error: AppColors.error,
     );
 
-    return MaterialApp.router(
-      title: 'Karate Class',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: colorScheme,
-        textTheme: GoogleFonts.figtreeTextTheme(ThemeData.light().textTheme).copyWith(
-          headlineLarge: AppText.h1,
-          headlineMedium: AppText.h2,
-          bodyLarge: AppText.r,
-          bodyMedium: AppText.m,
-          bodySmall: AppText.s,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.surface,
-          foregroundColor: AppColors.textPrimary,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        scaffoldBackgroundColor: AppColors.background,
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.field,
-          labelStyle: AppText.bodyMuted,
-          hintStyle: AppText.caption,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => LocationProvider()),
+        ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+      ],
+      child: MaterialApp.router(
+        title: 'Karate Class',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: colorScheme,
+          textTheme: GoogleFonts.figtreeTextTheme(ThemeData.light().textTheme).copyWith(
+            headlineLarge: AppText.h1,
+            headlineMedium: AppText.h2,
+            bodyLarge: AppText.r,
+            bodyMedium: AppText.m,
+            bodySmall: AppText.s,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.surface,
+            foregroundColor: AppColors.textPrimary,
+            elevation: 0,
+            centerTitle: true,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.onPrimary,
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
+          scaffoldBackgroundColor: AppColors.background,
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: AppColors.field,
+            labelStyle: AppText.bodyMuted,
+            hintStyle: AppText.caption,
+            border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
             ),
-            textStyle: AppText.r.copyWith(color: AppColors.onPrimary),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              textStyle: AppText.r.copyWith(color: AppColors.onPrimary),
+            ),
+          ),
+          cardTheme: CardThemeData(
+            color: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 4,
+          ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: AppColors.surface,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: AppColors.textSecondary,
+            type: BottomNavigationBarType.fixed,
           ),
         ),
-        cardTheme: CardThemeData(
-          color: AppColors.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 4,
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: AppColors.surface,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
-          type: BottomNavigationBarType.fixed,
-        ),
+        routerConfig: appRouter,
       ),
-      routerConfig: router,
     );
   }
 }

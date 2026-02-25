@@ -1,22 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/user_provider.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/auth_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/post_provider.dart';
-import '../../services/auth_service.dart';
+import '../../providers/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/dashboard_cards.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final studentsAsync = ref.watch(allStudentsProvider);
-    final locationsAsync = ref.watch(locationsProvider);
-    final postsAsync = ref.watch(postsProvider);
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final userProvider = context.read<UserProvider>();
+      final locationProvider = context.read<LocationProvider>();
+      final postProvider = context.read<PostProvider>();
+      await userProvider.fetchAllStudents();
+      await locationProvider.fetchLocations();
+      await postProvider.fetchPosts();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final users = context.watch<UserProvider>();
+    final locations = context.watch<LocationProvider>();
+    final posts = context.watch<PostProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -42,7 +61,7 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await AuthService().signOut();
+              await context.read<AuthProvider>().signOut();
               if (context.mounted) context.go('/login');
             },
             tooltip: 'Logout',
@@ -52,25 +71,23 @@ class DashboardScreen extends ConsumerWidget {
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
-          ref.invalidate(allStudentsProvider);
-          ref.invalidate(locationsProvider);
-          ref.invalidate(postsProvider);
+          final userProvider = context.read<UserProvider>();
+          final locationProvider = context.read<LocationProvider>();
+          final postProvider = context.read<PostProvider>();
+          await userProvider.fetchAllStudents();
+          await locationProvider.fetchLocations();
+          await postProvider.fetchPosts();
         },
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // Stats row
             Row(
               children: [
                 Expanded(
                   child: DashboardStatCard(
                     icon: Icons.people,
                     label: 'Students',
-                    value: studentsAsync.when(
-                      data: (s) => '${s.length}',
-                      loading: () => '—',
-                      error: (_, __) => '?',
-                    ),
+                    value: users.isLoading ? '--' : '${users.students.length}',
                     color: AppColors.primary,
                   ),
                 ),
@@ -79,11 +96,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: DashboardStatCard(
                     icon: Icons.location_on,
                     label: 'Locations',
-                    value: locationsAsync.when(
-                      data: (l) => '${l.length}',
-                      loading: () => '—',
-                      error: (_, __) => '?',
-                    ),
+                    value: locations.isLoading ? '--' : '${locations.locations.length}',
                     color: AppColors.info,
                   ),
                 ),
@@ -96,11 +109,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: DashboardStatCard(
                     icon: Icons.article_outlined,
                     label: 'Posts',
-                    value: postsAsync.when(
-                      data: (p) => '${p.length}',
-                      loading: () => '—',
-                      error: (_, __) => '?',
-                    ),
+                    value: posts.isLoading ? '--' : '${posts.posts.length}',
                     color: AppColors.success,
                   ),
                 ),
@@ -109,12 +118,9 @@ class DashboardScreen extends ConsumerWidget {
                   child: DashboardStatCard(
                     icon: Icons.upcoming_outlined,
                     label: 'Upcoming',
-                    value: postsAsync.when(
-                      data: (p) =>
-                          '${p.where((e) => e.isUpcoming).length}',
-                      loading: () => '—',
-                      error: (_, __) => '?',
-                    ),
+                    value: posts.isLoading
+                        ? '--'
+                        : '${posts.posts.where((e) => e.isUpcoming).length}',
                     color: AppColors.accentPurple,
                   ),
                 ),
@@ -163,4 +169,3 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 }
-

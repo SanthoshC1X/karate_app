@@ -1,53 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import '../../models/location_model.dart';
 import '../../models/user_model.dart';
+import '../../providers/attendance_provider.dart';
 import '../../providers/location_provider.dart';
-import '../../services/attendance_service.dart';
-import '../../services/user_service.dart';
+import '../../providers/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
-import '../../widgets/common/step_card.dart';
-import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/belt_badge.dart';
-import '../../widgets/loading_overlay.dart';
+import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/app_snackbar.dart';
+import '../../widgets/common/step_card.dart';
+import '../../widgets/loading_overlay.dart';
 
-class MarkAttendanceScreen extends ConsumerStatefulWidget {
+class MarkAttendanceScreen extends StatefulWidget {
   const MarkAttendanceScreen({super.key});
 
   @override
-  ConsumerState<MarkAttendanceScreen> createState() =>
-      _MarkAttendanceScreenState();
+  State<MarkAttendanceScreen> createState() => _MarkAttendanceScreenState();
 }
 
-class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
-  int _step = 0; // 0=pick location, 1=pick date, 2=mark students
+class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
+  int _step = 0;
   LocationModel? _location;
   DateTime _date = DateTime.now();
   List<UserModel> _students = [];
   Map<String, bool> _presenceMap = {};
   bool _loading = false;
-  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LocationProvider>().fetchLocations();
+    });
+  }
 
   Future<void> _loadStudents() async {
     if (_location == null) return;
     setState(() => _loading = true);
     try {
-      final students =
-          await UserService().getStudentsByLocation(_location!.id);
-      // Pre-fill existing attendance for this date
-      final existing = await AttendanceService()
-          .getAttendanceByDateAndLocation(
-              locationId: _location!.id, date: _date);
+      final userProvider = context.read<UserProvider>();
+      final attendanceProvider = context.read<AttendanceProvider>();
+      final students = await userProvider.fetchStudentsByLocation(_location!.id);
+      await attendanceProvider.fetchByDate(locationId: _location!.id, date: _date);
+      final existing = attendanceProvider.getByDate(_location!.id, _date);
       final existingMap = {for (final a in existing) a.studentId: a.isPresent};
       setState(() {
         _students = students;
-        _presenceMap = {
-          for (final s in students)
-            s.id: existingMap[s.id] ?? false
-        };
+        _presenceMap = {for (final s in students) s.id: existingMap[s.id] ?? false};
       });
     } catch (e) {
       if (mounted) {
@@ -64,13 +67,12 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
   }
 
   Future<void> _save() async {
-    setState(() => _saving = true);
     try {
-      await AttendanceService().markAttendance(
-        locationId: _location!.id,
-        date: _date,
-        studentPresenceMap: _presenceMap,
-      );
+      await context.read<AttendanceProvider>().markAttendance(
+            locationId: _location!.id,
+            date: _date,
+            studentPresenceMap: _presenceMap,
+          );
       if (!mounted) return;
       AppSnackbar.show(
         context: context,
@@ -94,8 +96,6 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
           message: '$e',
         );
       }
-    } finally {
-      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -120,23 +120,21 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final locationsAsync = ref.watch(locationsProvider);
+    final locations = context.watch<LocationProvider>();
+    final attendance = context.watch<AttendanceProvider>();
 
     return LoadingOverlay(
-      isLoading: _saving,
+      isLoading: attendance.isLoading,
       message: 'Saving attendance...',
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text('Mark Attendance',
-              style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
+          title: Text('Mark Attendance', style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
         ),
         body: Column(
           children: [
-            // Step indicator
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
                 children: List.generate(3, (i) {
                   final active = i == _step;
@@ -157,15 +155,14 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
                           ),
                           child: Center(
                             child: done
-                                ? const Icon(Icons.check,
-                                    color: AppColors.textOnDark, size: 16)
-                                : Text('${i + 1}',
+                                ? const Icon(Icons.check, color: AppColors.textOnDark, size: 16)
+                                : Text(
+                                    '${i + 1}',
                                     style: TextStyle(
-                                      color: active
-                                          ? AppColors.textOnDark
-                                          : AppColors.textOnDark38,
+                                      color: active ? AppColors.textOnDark : AppColors.textOnDark38,
                                       fontWeight: FontWeight.bold,
-                                    )),
+                                    ),
+                                  ),
                           ),
                         ),
                         if (i < 2)
@@ -184,8 +181,10 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
             Expanded(
               child: _step == 0
                   ? _StepLocation(
-                      locationsAsync: locationsAsync,
-                      onSelect: (loc) async {
+                      isLoading: locations.isLoading,
+                      error: locations.error,
+                      locations: locations.locations,
+                      onSelect: (loc) {
                         setState(() {
                           _location = loc;
                           _step = 1;
@@ -210,8 +209,7 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
                           : _StepMark(
                               students: _students,
                               presenceMap: _presenceMap,
-                              onToggle: (id, v) =>
-                                  setState(() => _presenceMap[id] = v),
+                              onToggle: (id, v) => setState(() => _presenceMap[id] = v),
                               onSave: _save,
                               onBack: () => setState(() => _step = 1),
                               date: _date,
@@ -226,56 +224,63 @@ class _MarkAttendanceScreenState extends ConsumerState<MarkAttendanceScreen> {
 }
 
 class _StepLocation extends StatelessWidget {
-  final AsyncValue<List<LocationModel>> locationsAsync;
+  final bool isLoading;
+  final String? error;
+  final List<LocationModel> locations;
   final Function(LocationModel) onSelect;
-  const _StepLocation({required this.locationsAsync, required this.onSelect});
+
+  const _StepLocation({
+    required this.isLoading,
+    required this.error,
+    required this.locations,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return locationsAsync.when(
-      loading: () => ListView.builder(
+    if (isLoading) {
+      return ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: 6,
         itemBuilder: (_, __) => const AppSkeletonListItem(),
-      ),
-      error: (e, _) =>
-          Center(child: Text('$e', style: TextStyle(color: AppColors.error))),
-      data: (locations) {
-        if (locations.isEmpty) {
-          return const Center(
-              child: Text('No locations found. Add one first.',
-                  style: TextStyle(color: AppColors.textOnDark54)));
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('Step 1: Select Location',
-                  style: AppText.section.copyWith(color: AppColors.textOnDark)),
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: locations.length,
-                itemBuilder: (_, i) {
-                  final loc = locations[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: StepCard(
-                      icon: Icons.location_on,
-                      title: loc.name,
-                      subtitle: 'Tap to continue',
-                      color: AppColors.primary,
-                      onTap: () => onSelect(loc),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
+      );
+    }
+    if (error != null) {
+      return Center(child: Text(error!, style: const TextStyle(color: AppColors.error)));
+    }
+    if (locations.isEmpty) {
+      return const Center(
+        child: Text('No locations found. Add one first.',
+            style: TextStyle(color: AppColors.textOnDark54)),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('Step 1: Select Location', style: AppText.section.copyWith(color: AppColors.textOnDark)),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: locations.length,
+            itemBuilder: (_, i) {
+              final loc = locations[i];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: StepCard(
+                  icon: Icons.location_on,
+                  title: loc.name,
+                  subtitle: 'Tap to continue',
+                  color: AppColors.primary,
+                  onTap: () => onSelect(loc),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -297,11 +302,13 @@ class _StepDate extends StatelessWidget {
   final VoidCallback onPickDate;
   final VoidCallback onNext;
   final VoidCallback onBack;
-  const _StepDate(
-      {required this.date,
-      required this.onPickDate,
-      required this.onNext,
-      required this.onBack});
+
+  const _StepDate({
+    required this.date,
+    required this.onPickDate,
+    required this.onNext,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -310,8 +317,7 @@ class _StepDate extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Step 2: Select Date',
-              style: AppText.section.copyWith(color: AppColors.textOnDark)),
+          Text('Step 2: Select Date', style: AppText.section.copyWith(color: AppColors.textOnDark)),
           const SizedBox(height: 24),
           GestureDetector(
             onTap: onPickDate,
@@ -321,20 +327,19 @@ class _StepDate extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: AppColors.primary.withValues(alpha:0.4)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today,
-                      color: AppColors.primary, size: 28),
+                  const Icon(Icons.calendar_today, color: AppColors.primary, size: 28),
                   const SizedBox(width: 16),
                   Text(
                     DateFormat('EEEE, MMMM d yyyy').format(date),
                     style: const TextStyle(
-                        color: AppColors.textOnDark,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600),
+                      color: AppColors.textOnDark,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -346,9 +351,10 @@ class _StepDate extends StatelessWidget {
               OutlinedButton(
                 onPressed: onBack,
                 style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textOnDark54,
-                    side: const BorderSide(color: AppColors.borderMuted),
-                    minimumSize: const Size(100, 48)),
+                  foregroundColor: AppColors.textOnDark54,
+                  side: const BorderSide(color: AppColors.borderMuted),
+                  minimumSize: const Size(100, 48),
+                ),
                 child: const Text('Back'),
               ),
               const SizedBox(width: 12),
@@ -392,20 +398,19 @@ class _StepMark extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Text('Step 3: Mark Attendance',
-                style: AppText.section.copyWith(color: AppColors.textOnDark)),
+            Text('Step 3: Mark Attendance', style: AppText.section.copyWith(color: AppColors.textOnDark)),
             const SizedBox(height: 32),
             const Icon(Icons.people_outline, size: 64, color: AppColors.textOnDark30),
             const SizedBox(height: 16),
-            const Text('No students at this location',
-                style: TextStyle(color: AppColors.textOnDark54)),
+            const Text('No students at this location', style: TextStyle(color: AppColors.textOnDark54)),
             const Spacer(),
             OutlinedButton(
               onPressed: onBack,
               style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textOnDark54,
-                  side: const BorderSide(color: AppColors.borderMuted),
-                  minimumSize: const Size(double.infinity, 48)),
+                foregroundColor: AppColors.textOnDark54,
+                side: const BorderSide(color: AppColors.borderMuted),
+                minimumSize: const Size(double.infinity, 48),
+              ),
               child: const Text('Back'),
             ),
           ],
@@ -420,11 +425,10 @@ class _StepMark extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Step 3: Mark Attendance',
-                  style: AppText.section.copyWith(color: AppColors.textOnDark)),
+              Text('Step 3: Mark Attendance', style: AppText.section.copyWith(color: AppColors.textOnDark)),
               const SizedBox(height: 4),
               Text(
-                '${location.name} • ${DateFormat('MMM d').format(date)} • $presentCount/${students.length} present',
+                '${location.name} - ${DateFormat('MMM d').format(date)} - $presentCount/${students.length} present',
                 style: const TextStyle(color: AppColors.textOnDark54, fontSize: 13),
               ),
             ],
@@ -444,33 +448,34 @@ class _StepMark extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isPresent
-                        ? AppColors.success.withValues(alpha:0.4)
+                        ? AppColors.success.withValues(alpha: 0.4)
                         : AppColors.borderLighter,
                   ),
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: isPresent
-                        ? AppColors.success.withValues(alpha:0.2)
-                        : AppColors.borderLight,
+                    backgroundColor:
+                        isPresent ? AppColors.success.withValues(alpha: 0.2) : AppColors.borderLight,
                     child: Text(
                       s.name[0].toUpperCase(),
                       style: TextStyle(
-                          color: isPresent ? AppColors.success : AppColors.textOnDark38,
-                          fontWeight: FontWeight.bold),
+                        color: isPresent ? AppColors.success : AppColors.textOnDark38,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  title: Text(s.name,
-                      style: const TextStyle(
-                          color: AppColors.textOnDark, fontWeight: FontWeight.w600)),
+                  title: Text(
+                    s.name,
+                    style: const TextStyle(color: AppColors.textOnDark, fontWeight: FontWeight.w600),
+                  ),
                   subtitle: BeltBadge(beltLevel: s.beltLevel, size: 11),
                   trailing: Switch(
                     value: isPresent,
                     onChanged: (v) => onToggle(s.id, v),
                     activeThumbColor: AppColors.success,
-                    activeTrackColor: AppColors.success.withValues(alpha:0.3),
+                    activeTrackColor: AppColors.success.withValues(alpha: 0.3),
                     inactiveThumbColor: AppColors.error,
-                    inactiveTrackColor: AppColors.error.withValues(alpha:0.2),
+                    inactiveTrackColor: AppColors.error.withValues(alpha: 0.2),
                   ),
                 ),
               );
@@ -484,9 +489,10 @@ class _StepMark extends StatelessWidget {
               OutlinedButton(
                 onPressed: onBack,
                 style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textOnDark54,
-                    side: const BorderSide(color: AppColors.borderMuted),
-                    minimumSize: const Size(100, 48)),
+                  foregroundColor: AppColors.textOnDark54,
+                  side: const BorderSide(color: AppColors.borderMuted),
+                  minimumSize: const Size(100, 48),
+                ),
                 child: const Text('Back'),
               ),
               const SizedBox(width: 12),
@@ -504,6 +510,3 @@ class _StepMark extends StatelessWidget {
     );
   }
 }
-
-
-

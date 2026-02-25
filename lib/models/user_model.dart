@@ -1,6 +1,7 @@
 class UserModel {
   final String id;
   final String name;
+  final String? email;
   final int? age;
   final String beltLevel;
   final String? phone;
@@ -21,6 +22,7 @@ class UserModel {
   UserModel({
     required this.id,
     required this.name,
+    this.email,
     this.age,
     required this.beltLevel,
     this.phone,
@@ -35,6 +37,7 @@ class UserModel {
     return UserModel(
       id: map['id'] as String,
       name: map['name'] as String,
+      email: map['email'] as String?,
       age: map['age'] as int?,
       beltLevel: map['belt_level'] as String? ?? 'White',
       phone: map['phone'] as String?,
@@ -47,6 +50,7 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return {
       'name': name,
+      'email': email,
       'age': age,
       'belt_level': beltLevel,
       'phone': phone,
@@ -57,6 +61,7 @@ class UserModel {
 
   UserModel copyWith({
     String? name,
+    String? email,
     int? age,
     String? beltLevel,
     String? phone,
@@ -65,6 +70,7 @@ class UserModel {
     return UserModel(
       id: id,
       name: name ?? this.name,
+      email: email ?? this.email,
       age: age ?? this.age,
       beltLevel: beltLevel ?? this.beltLevel,
       phone: phone ?? this.phone,

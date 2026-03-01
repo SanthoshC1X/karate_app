@@ -80,6 +80,8 @@ class AuthService {
     required String beltLevel,
     String? phone,
     String? locationId,
+    List<String>? masterIds,
+    List<String>? classIds,
   }) async {
     final data = await _api.post('/auth/register', body: {
       'email': email,
@@ -89,12 +91,53 @@ class AuthService {
       'belt_level': beltLevel,
       'phone': phone,
       'location_id': locationId,
+      'master_ids': masterIds ?? const <String>[],
+      'class_ids': classIds ?? const <String>[],
     }) as Map<String, dynamic>;
 
     final token = data['token'] as String?;
     final userMap = data['user'] as Map<String, dynamic>?;
     if (token == null || userMap == null) {
       throw Exception('Invalid registration response');
+    }
+
+    _api.setToken(token);
+    _currentUserId = userMap['id'] as String?;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
+    _authController.add(const AuthState(AuthChangeEvent.signedIn));
+
+    return UserModel.fromMap(userMap);
+  }
+
+  Future<UserModel> signUpMaster({
+    required String email,
+    required String password,
+    required String name,
+    String? phone,
+    String? bio,
+    required List<String> locationIds,
+    List<Map<String, String?>>? newLocations,
+    List<String>? classIds,
+    List<Map<String, String?>>? newClasses,
+  }) async {
+    final data = await _api.post('/auth/register-master', body: {
+      'email': email,
+      'password': password,
+      'name': name,
+      'phone': phone,
+      'bio': bio,
+      'location_ids': locationIds,
+      'new_locations': newLocations ?? const <Map<String, String?>>[],
+      'class_ids': classIds ?? const <String>[],
+      'new_classes': newClasses ?? const <Map<String, String?>>[],
+    }) as Map<String, dynamic>;
+
+    final token = data['token'] as String?;
+    final userMap = data['user'] as Map<String, dynamic>?;
+    if (token == null || userMap == null) {
+      throw Exception('Invalid master registration response');
     }
 
     _api.setToken(token);
@@ -121,4 +164,3 @@ class AuthService {
     yield* _authController.stream;
   }
 }
-

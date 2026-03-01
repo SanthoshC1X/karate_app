@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/brand_mark.dart';
 import '../../widgets/common/app_skeleton_loading.dart';
 
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen>
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
@@ -38,14 +38,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _checkSession() async {
     await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
-    final authService = AuthService();
-    await authService.init();
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.init();
     if (!mounted) return;
-    if (authService.isLoggedIn) {
+    if (authProvider.isLoggedIn) {
       try {
-        final profile = await authService.getCurrentUserProfile();
+        await authProvider.loadProfile();
+        final profile = authProvider.currentUser;
         if (!mounted) return;
-        if (profile != null && profile.isAdmin) {
+        if (profile != null &&
+            (profile.member == 'master' || profile.member == 'super_admin')) {
           context.go('/admin/dashboard');
         } else {
           context.go('/student/home');

@@ -1,24 +1,24 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../providers/post_provider.dart';
-import '../../services/post_service.dart';
 import '../../services/storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../widgets/common/app_buttons.dart';
 import '../../widgets/loading_overlay.dart';
 import '../../widgets/common/app_snackbar.dart';
 
-class CreatePostScreen extends ConsumerStatefulWidget {
+class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
 
   @override
-  ConsumerState<CreatePostScreen> createState() => _CreatePostScreenState();
+  State<CreatePostScreen> createState() => _CreatePostScreenState();
 }
 
-class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
+class _CreatePostScreenState extends State<CreatePostScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -68,7 +68,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       if (_imageFile != null) {
         imageUrl = await StorageService().uploadPostImage(_imageFile!);
       }
-      await PostService().createPost(
+      if (!mounted) return;
+      await context.read<PostProvider>().createPost(
         title: _titleCtrl.text.trim(),
         description: _descCtrl.text.trim().isEmpty
             ? null
@@ -77,7 +78,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         imageUrl: imageUrl,
         type: _type,
       );
-      ref.invalidate(postsProvider);
       if (!mounted) return;
       AppSnackbar.show(
         context: context,
@@ -267,10 +267,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
+              AppLoadingButton(
+                label: 'Publish Post',
+                isLoading: _loading,
                 onPressed: _submit,
-                icon: const Icon(Icons.publish),
-                label: const Text('Publish Post'),
               ),
             ],
           ),

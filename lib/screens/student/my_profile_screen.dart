@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../models/location_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/location_provider.dart';
-import '../../services/auth_service.dart';
-import '../../services/user_service.dart';
+import '../../providers/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/belt_badge.dart';
 import '../../widgets/common/app_dropdown.dart';
 import '../../widgets/common/app_snackbar.dart';
 import '../../widgets/common/app_skeleton_loading.dart';
+import '../../widgets/common/app_buttons.dart';
 import '../../widgets/loading_overlay.dart';
 
-class MyProfileScreen extends ConsumerStatefulWidget {
+class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
 
   @override
-  ConsumerState<MyProfileScreen> createState() => _MyProfileScreenState();
+  State<MyProfileScreen> createState() => _MyProfileScreenState();
 }
 
-class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
+class _MyProfileScreenState extends State<MyProfileScreen> {
   UserModel? _profile;
   bool _loading = true;
   bool _saving = false;
@@ -35,13 +36,19 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<LocationProvider>().fetchLocations();
+      await _loadProfile();
+    });
   }
 
   Future<void> _loadProfile() async {
     setState(() => _loading = true);
     try {
-      final profile = await AuthService().getCurrentUserProfile();
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loadProfile();
+      if (!mounted) return;
+      final profile = authProvider.currentUser;
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -59,11 +66,11 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
   }
 
   Future<void> _save() async {
-    final uid = AuthService().currentUserId;
+    final uid = context.read<AuthProvider>().currentUserId;
     if (uid == null) return;
     setState(() => _saving = true);
     try {
-      await UserService().updateStudent(uid, {
+      await context.read<UserProvider>().updateStudent(uid, {
         'name': _nameCtrl.text.trim(),
         'age': int.tryParse(_ageCtrl.text),
         'phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
@@ -104,7 +111,7 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final locationsAsync = ref.watch(locationsProvider);
+    final locationProvider = context.watch<LocationProvider>();
 
     if (_loading) {
       return const Scaffold(
@@ -225,27 +232,29 @@ class _MyProfileScreenState extends ConsumerState<MyProfileScreen> {
                       },
                     ),
                     const SizedBox(height: 14),
-                    locationsAsync.when(
-                      loading: () => const Padding(
+                    if (locationProvider.isLoading)
+                      const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: AppSkeletonLoading(height: 46, width: double.infinity),
-                      ),
-                      error: (_, __) => const SizedBox(),
-                      data: (locations) => AppDropdown<LocationModel>(
+                      )
+                    else if (locationProvider.error != null)
+                      const SizedBox()
+                    else
+                      AppDropdown<LocationModel>(
                         hint: 'Select Location',
                         value: _selectedLocation ??
-                            locations
+                            locationProvider.locations
                                 .where((l) => l.id == _profile!.locationId)
                                 .firstOrNull,
-                        items: locations,
+                        items: locationProvider.locations,
                         itemLabel: (l) => l.name,
                         onChanged: (v) => setState(() => _selectedLocation = v),
                       ),
-                    ),
                     const SizedBox(height: 28),
-                    ElevatedButton(
+                    AppLoadingButton(
+                      label: 'Save Changes',
+                      isLoading: _saving,
                       onPressed: _save,
-                      child: const Text('Save Changes'),
                     ),
                   ],
                 ],

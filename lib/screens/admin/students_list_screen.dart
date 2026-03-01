@@ -1,30 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 import '../../models/location_model.dart';
-import '../../providers/user_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/belt_badge.dart';
 import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/step_card.dart';
 
-class StudentsListScreen extends ConsumerStatefulWidget {
+class StudentsListScreen extends StatefulWidget {
   const StudentsListScreen({super.key});
 
   @override
-  ConsumerState<StudentsListScreen> createState() => _StudentsListScreenState();
+  State<StudentsListScreen> createState() => _StudentsListScreenState();
 }
 
-class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
+class _StudentsListScreenState extends State<StudentsListScreen> {
   String _searchQuery = '';
   LocationModel? _selectedLocation;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final userProvider = context.read<UserProvider>();
+      final locationProvider = context.read<LocationProvider>();
+      await userProvider.fetchAllStudents();
+      await locationProvider.fetchLocations();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final allStudentsAsync = ref.watch(allStudentsProvider);
-    final locationsAsync = ref.watch(locationsProvider);
+    final userProvider = context.watch<UserProvider>();
+    final locationProvider = context.watch<LocationProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,8 +67,8 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          locationsAsync.when(
-            loading: () => SizedBox(
+          if (locationProvider.isLoading)
+            SizedBox(
               height: 38,
               child: ListView(
                 scrollDirection: Axis.horizontal,
@@ -69,9 +81,9 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
                   AppSkeletonLoading(width: 90, height: 32),
                 ],
               ),
-            ),
-            error: (_, __) => const SizedBox(),
-            data: (locations) => SizedBox(
+            )
+          else
+            SizedBox(
               height: 38,
               child: ListView(
                 scrollDirection: Axis.horizontal,
@@ -92,7 +104,7 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
                       ),
                     ),
                   ),
-                  ...locations.map(
+                  ...locationProvider.locations.map(
                     (loc) => Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
@@ -115,73 +127,74 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
                 ],
               ),
             ),
-          ),
           const SizedBox(height: 8),
           Expanded(
-            child: allStudentsAsync.when(
-              loading: () => ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                itemCount: 7,
-                itemBuilder: (_, __) => const AppSkeletonListItem(),
-              ),
-              error: (e, _) => Center(
-                child: Text(
-                  'Error: $e',
-                  style: const TextStyle(color: AppColors.error),
-                ),
-              ),
-              data: (students) {
-                var filtered = students;
-                if (_selectedLocation != null) {
-                  filtered = filtered
-                      .where((s) => s.locationId == _selectedLocation!.id)
-                      .toList();
-                }
-                if (_searchQuery.isNotEmpty) {
-                  filtered = filtered
-                      .where(
-                        (s) => s.name.toLowerCase().contains(_searchQuery) ||
-                            (s.phone?.contains(_searchQuery) ?? false),
-                      )
-                      .toList();
-                }
-                if (filtered.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No students found',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  );
-                }
-                return RefreshIndicator(
-                  color: AppColors.primary,
-                  onRefresh: () async => ref.invalidate(allStudentsProvider),
-                  child: ListView.builder(
+            child: userProvider.isLoading
+                ? ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    itemCount: filtered.length,
-                    itemBuilder: (_, i) {
-                      final student = filtered[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: StepCard(
-                          icon: Icons.person,
-                          title: student.name,
-                          subtitle: student.age != null
-                              ? 'Age ${student.age}'
-                              : 'Student',
-                          color: AppColors.primary,
-                          trailing: BeltBadge(
-                            beltLevel: student.beltLevel,
-                            size: 11,
-                          ),
-                          onTap: () => context.go('/admin/students/${student.id}'),
+                    itemCount: 7,
+                    itemBuilder: (_, __) => const AppSkeletonListItem(),
+                  )
+                : userProvider.error != null
+                    ? Center(
+                        child: Text(
+                          'Error: ${userProvider.error}',
+                          style: const TextStyle(color: AppColors.error),
                         ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                      )
+                    : Builder(
+                        builder: (_) {
+                          var filtered = userProvider.students;
+                          if (_selectedLocation != null) {
+                            filtered = filtered
+                                .where((s) => s.locationId == _selectedLocation!.id)
+                                .toList();
+                          }
+                          if (_searchQuery.isNotEmpty) {
+                            filtered = filtered
+                                .where(
+                                  (s) => s.name.toLowerCase().contains(_searchQuery) ||
+                                      (s.phone?.contains(_searchQuery) ?? false),
+                                )
+                                .toList();
+                          }
+                          if (filtered.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                'No students found',
+                                style: TextStyle(color: AppColors.textSecondary),
+                              ),
+                            );
+                          }
+                          return RefreshIndicator(
+                            color: AppColors.primary,
+                            onRefresh: () => context.read<UserProvider>().fetchAllStudents(),
+                            child: ListView.builder(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                              itemCount: filtered.length,
+                              itemBuilder: (_, i) {
+                                final student = filtered[i];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: StepCard(
+                                    icon: Icons.person,
+                                    title: student.name,
+                                    subtitle: student.age != null
+                                        ? 'Age ${student.age}'
+                                        : 'Student',
+                                    color: AppColors.primary,
+                                    trailing: BeltBadge(
+                                      beltLevel: student.beltLevel,
+                                      size: 11,
+                                    ),
+                                    onTap: () => context.go('/admin/students/${student.id}'),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

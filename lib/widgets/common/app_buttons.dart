@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
-import 'app_skeleton_loading.dart';
 
 class AppPrimaryButton extends StatelessWidget {
   final String label;
@@ -22,21 +21,28 @@ class AppPrimaryButton extends StatelessWidget {
     return SizedBox(
       height: height,
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: icon == null ? const SizedBox.shrink() : Icon(icon, size: 18),
-        label: Text(label, style: AppText.r.copyWith(color: AppColors.onPrimary)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+      child: icon != null
+          ? ElevatedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 18),
+              label: Text(label, style: AppText.button.copyWith(color: AppColors.onPrimary)),
+              style: _style,
+            )
+          : ElevatedButton(
+              onPressed: onPressed,
+              style: _style,
+              child: Text(label, style: AppText.button.copyWith(color: AppColors.onPrimary)),
+            ),
     );
   }
+
+  ButtonStyle get _style => ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      );
 }
 
 class AppMutedButton extends StatelessWidget {
@@ -60,12 +66,10 @@ class AppMutedButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-          side: const BorderSide(color: AppColors.textHint),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          side: const BorderSide(color: AppColors.border),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: Text(label, style: AppText.r),
+        child: Text(label, style: AppText.button.copyWith(color: AppColors.textPrimary)),
       ),
     );
   }
@@ -95,24 +99,20 @@ class AppLoadingButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.65),
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: isLoading
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: AppSkeletonLoading(
-                  width: 20,
-                  height: 20,
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  baseColor: AppColors.blue9,
-                  highlightColor: AppColors.blue6,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
                 ),
               )
-            : Text(label, style: AppText.r.copyWith(color: AppColors.onPrimary)),
+            : Text(label, style: AppText.button.copyWith(color: AppColors.onPrimary)),
       ),
     );
   }

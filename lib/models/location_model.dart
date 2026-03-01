@@ -14,12 +14,15 @@ class LocationModel {
   });
 
   factory LocationModel.fromMap(Map<String, dynamic> map) {
+    final createdAtRaw = map['created_at'] ?? map['createdAt'];
     return LocationModel(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      address: map['address'] as String?,
-      notes: map['notes'] as String?,
-      createdAt: DateTime.parse(map['created_at'] as String),
+      id: (map['id'] ?? '').toString(),
+      name: (map['name'] ?? '').toString(),
+      address: map['address']?.toString(),
+      notes: map['notes']?.toString(),
+      createdAt: createdAtRaw is String
+          ? DateTime.tryParse(createdAtRaw) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 

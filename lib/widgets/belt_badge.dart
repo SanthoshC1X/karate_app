@@ -45,17 +45,7 @@ class BeltBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: _beltColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.border,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _beltColor.withValues(alpha:0.4),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: AppColors.border, width: 0.8),
       ),
       child: Text(
         beltLevel,

@@ -15,6 +15,9 @@ import 'screens/student/home_feed_screen.dart';
 import 'screens/student/my_profile_screen.dart';
 import 'screens/student/my_attendance_screen.dart';
 import 'screens/student/post_detail_screen.dart';
+import 'screens/shared/conversations_screen.dart';
+import 'screens/shared/chat_screen.dart';
+import 'models/conversation_model.dart';
 import 'services/auth_service.dart';
 
 final appRouter = GoRouter(
@@ -73,6 +76,10 @@ final appRouter = GoRouter(
           path: '/admin/posts/create',
           builder: (_, __) => const CreatePostScreen(),
         ),
+        GoRoute(
+          path: '/admin/messages',
+          builder: (_, __) => const ConversationsScreen(),
+        ),
       ],
     ),
     ShellRoute(
@@ -95,7 +102,19 @@ final appRouter = GoRouter(
           builder: (_, state) =>
               PostDetailScreen(postId: state.pathParameters['id']!),
         ),
+        GoRoute(
+          path: '/student/chat',
+          builder: (_, __) => const ConversationsScreen(),
+        ),
       ],
+    ),
+    // Chat screen — pushed on top of shell (no bottom nav)
+    GoRoute(
+      path: '/chat/:id',
+      builder: (_, state) => ChatScreen(
+        conversationId: state.pathParameters['id']!,
+        conversation: state.extra as ConversationModel?,
+      ),
     ),
   ],
 );

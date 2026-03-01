@@ -7,6 +7,7 @@ import '../../providers/post_provider.dart';
 import '../../services/storage_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../widgets/common/app_buttons.dart';
 import '../../widgets/loading_overlay.dart';
 import '../../widgets/common/app_snackbar.dart';
 
@@ -266,10 +267,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
+              AppLoadingButton(
+                label: 'Publish Post',
+                isLoading: _loading,
                 onPressed: _submit,
-                icon: const Icon(Icons.publish),
-                label: const Text('Publish Post'),
               ),
             ],
           ),

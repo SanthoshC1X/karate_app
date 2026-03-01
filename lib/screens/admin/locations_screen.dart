@@ -25,19 +25,20 @@ class _LocationsScreenState extends State<LocationsScreen> {
     });
   }
 
-  Future<void> _showLocationDialog({LocationModel? existing}) async {
-    final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    final addressCtrl = TextEditingController(text: existing?.address ?? '');
-    final notesCtrl = TextEditingController(text: existing?.notes ?? '');
+  Future<void> _showLocationDialog({required LocationModel existing}) async {
+    final nameCtrl = TextEditingController(text: existing.name);
+    final addressCtrl = TextEditingController(text: existing.address ?? '');
+    final notesCtrl = TextEditingController(text: existing.notes ?? '');
     final formKey = GlobalKey<FormState>();
 
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(
-          existing == null ? 'Add Location' : 'Edit Location',
-          style: const TextStyle(color: AppColors.textOnDark, fontWeight: FontWeight.bold),
+        title: const Text(
+          'Edit Location',
+          style: TextStyle(
+              color: AppColors.textOnDark, fontWeight: FontWeight.bold),
         ),
         content: Form(
           key: formKey,
@@ -51,7 +52,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
                   labelText: 'Name *',
                   labelStyle: TextStyle(color: AppColors.textOnDark54),
                 ),
-                validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -78,7 +80,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textOnDark54)),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textOnDark54)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -86,19 +89,15 @@ class _LocationsScreenState extends State<LocationsScreen> {
               Navigator.pop(context);
               try {
                 final provider = context.read<LocationProvider>();
-                if (existing == null) {
-                  await provider.addLocation(
-                    name: nameCtrl.text.trim(),
-                    address: addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
-                    notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
-                  );
-                } else {
-                  await provider.updateLocation(existing.id, {
-                    'name': nameCtrl.text.trim(),
-                    'address': addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
-                    'notes': notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
-                  });
-                }
+                await provider.updateLocation(existing.id, {
+                  'name': nameCtrl.text.trim(),
+                  'address': addressCtrl.text.trim().isEmpty
+                      ? null
+                      : addressCtrl.text.trim(),
+                  'notes': notesCtrl.text.trim().isEmpty
+                      ? null
+                      : notesCtrl.text.trim(),
+                });
               } catch (e) {
                 if (mounted) {
                   AppSnackbar.show(
@@ -111,7 +110,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
               }
             },
             style: ElevatedButton.styleFrom(minimumSize: const Size(80, 40)),
-            child: Text(existing == null ? 'Add' : 'Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -123,7 +122,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Delete Location', style: TextStyle(color: AppColors.textOnDark)),
+        title: const Text('Delete Location',
+            style: TextStyle(color: AppColors.textOnDark)),
         content: Text(
           'Delete "${loc.name}"? This cannot be undone.',
           style: const TextStyle(color: AppColors.textOnDark70),
@@ -131,11 +131,13 @@ class _LocationsScreenState extends State<LocationsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textOnDark54)),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textOnDark54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+            child:
+                const Text('Delete', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -152,14 +154,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Locations', style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showLocationDialog(),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: AppColors.onPrimary),
-        label: const Text('Add Location',
-            style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold)),
+        title: Text('Locations',
+            style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
       ),
       body: provider.isLoading
           ? const _LocationsSkeleton()
@@ -173,19 +169,19 @@ class _LocationsScreenState extends State<LocationsScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.location_off, size: 64, color: AppColors.textOnDark30),
+                          Icon(Icons.location_off,
+                              size: 64, color: AppColors.textOnDark30),
                           SizedBox(height: 16),
-                          Text('No locations yet',
-                              style: TextStyle(color: AppColors.textOnDark54, fontSize: 16)),
-                          SizedBox(height: 8),
-                          Text('Tap + to add your first location',
-                              style: TextStyle(color: AppColors.textOnDark30, fontSize: 13)),
+                          Text('No locations found',
+                              style: TextStyle(
+                                  color: AppColors.textOnDark54, fontSize: 16)),
                         ],
                       ),
                     )
                   : RefreshIndicator(
                       color: AppColors.primary,
-                      onRefresh: () => context.read<LocationProvider>().fetchLocations(),
+                      onRefresh: () =>
+                          context.read<LocationProvider>().fetchLocations(),
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                         itemCount: provider.locations.length,
@@ -221,7 +217,8 @@ class _LocationsScreenState extends State<LocationsScreen> {
                                     Icons.edit_outlined,
                                     color: AppColors.textOnDark38,
                                   ),
-                                  onPressed: () => _showLocationDialog(existing: loc),
+                                  onPressed: () =>
+                                      _showLocationDialog(existing: loc),
                                 ),
                               ),
                             ),

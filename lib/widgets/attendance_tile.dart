@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/attendance_model.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text.dart';
 
 class AttendanceTile extends StatelessWidget {
   final AttendanceModel attendance;
@@ -10,19 +11,15 @@ class AttendanceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isPresent = attendance.isPresent;
+    final statusColor = isPresent ? AppColors.success : AppColors.error;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: attendance.isPresent
-              ? AppColors.success.withValues(alpha:0.4)
-              : AppColors.error.withValues(alpha:0.4),
-          width: 1.2,
-        ),
+        border: Border.all(color: statusColor.withValues(alpha: 0.35), width: 1.2),
       ),
       child: Row(
         children: [
@@ -31,14 +28,12 @@ class AttendanceTile extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: attendance.isPresent
-                  ? AppColors.success.withValues(alpha:0.15)
-                  : AppColors.error.withValues(alpha:0.15),
+              color: statusColor.withValues(alpha: 0.12),
             ),
             child: Icon(
-              attendance.isPresent ? Icons.check : Icons.close,
-              color: attendance.isPresent ? AppColors.success : AppColors.error,
-              size: 22,
+              isPresent ? Icons.check_rounded : Icons.close_rounded,
+              color: statusColor,
+              size: 20,
             ),
           ),
           const SizedBox(width: 12),
@@ -47,26 +42,26 @@ class AttendanceTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  DateFormat('EEEE, MMM d yyyy').format(attendance.date),
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  DateFormat('EEE, MMM d yyyy').format(attendance.date),
+                  style: AppText.bodyMedium,
                 ),
                 if (attendance.locationName != null)
                   Text(
                     attendance.locationName!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
+                    style: AppText.caption,
                   ),
               ],
             ),
           ),
-          Text(
-            attendance.isPresent ? 'Present' : 'Absent',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: attendance.isPresent ? AppColors.success : AppColors.error,
-              fontSize: 13,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              isPresent ? 'Present' : 'Absent',
+              style: AppText.label.copyWith(color: statusColor, fontSize: 12),
             ),
           ),
         ],

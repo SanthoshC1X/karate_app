@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/app_snackbar.dart';
+import '../../widgets/common/app_buttons.dart';
 import '../../widgets/loading_overlay.dart';
 
 class RegisterMasterScreen extends StatefulWidget {
@@ -528,9 +529,10 @@ class _RegisterMasterScreenState extends State<RegisterMasterScreen> {
                   );
                 }),
                 const SizedBox(height: 28),
-                ElevatedButton(
+                AppLoadingButton(
+                  label: 'Create Master Account',
+                  isLoading: _loading,
                   onPressed: _registerMaster,
-                  child: const Text('Create Master Account'),
                 ),
                 const SizedBox(height: 16),
                 Row(

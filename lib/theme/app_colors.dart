@@ -1,23 +1,96 @@
 import 'package:flutter/material.dart';
 
+/// Single source of truth for every colour token used in the app.
+/// Screens and widgets must ONLY reference these tokens — never raw hex literals.
 class AppColors {
-  /* --------------------------------------------------------------------------
-   * BLUE SCALE (Primary / Links / Focus / CTA)
-   * ------------------------------------------------------------------------*/
-  static const Color blue1  = Color(0xFFF5F9FF);
-  static const Color blue2  = Color(0xFFEAF2FF);
-  static const Color blue3  = Color(0xFFD6E6FF);
-  static const Color blue4  = Color(0xFFBFD8FF);
-  static const Color blue5  = Color(0xFF9FC2FF);
-  static const Color blue6  = Color(0xFF7DAAFF);
-  static const Color blue7  = Color(0xFF5B8CFF);
-  static const Color blue8  = Color(0xFF3A6FE0); // Primary
-  static const Color blue9  = Color(0xFF2554B5);
-  static const Color blue10 = Color(0xFF1E3A8A);
+  AppColors._();
 
-  /* --------------------------------------------------------------------------
-   * SKIN / SAND SCALE (Warmth / Cards / Highlights)
-   * ------------------------------------------------------------------------*/
+  // ── Brand ────────────────────────────────────────────────────────────────
+  static const Color primary      = Color(0xFF3A6FE0);
+  static const Color primaryDark  = Color(0xFF2855C0);
+  static const Color primaryLight = Color(0xFFEBF2FF);
+
+  // ── Backgrounds ──────────────────────────────────────────────────────────
+  static const Color background  = Color(0xFFF4F6F9); // page scaffold
+  static const Color surface     = Color(0xFFFFFFFF); // cards / sheets
+  static const Color surfaceTint = Color(0xFFF0F3F8); // grouped / subtle areas
+
+  // ── Borders ──────────────────────────────────────────────────────────────
+  static const Color border      = Color(0xFFE2E8F0); // card / divider borders
+  static const Color borderInput = Color(0xFFCBD5E1); // input / dropdown idle border
+  static const Color borderLight = Color(0xFFF1F5F9); // hairline dividers
+
+  // ── Text ─────────────────────────────────────────────────────────────────
+  static const Color textPrimary   = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textHint      = Color(0xFF9CA3AF);
+  static const Color textDisabled  = Color(0xFF9CA3AF);
+  static const Color onPrimary     = Color(0xFFFFFFFF);
+  static const Color textOnDark38  = Color(0x61FFFFFF);
+
+  // ── Status ───────────────────────────────────────────────────────────────
+  static const Color success      = Color(0xFF16A34A);
+  static const Color successLight = Color(0xFFDCFCE7);
+  static const Color error        = Color(0xFFDC2626);
+  static const Color errorLight   = Color(0xFFFEF2F2);
+  static const Color warning      = Color(0xFFD97706);
+  static const Color warningLight = Color(0xFFFEF3C7);
+  static const Color info         = Color(0xFF0EA5E9);
+  static const Color infoLight    = Color(0xFFE0F2FE);
+
+  // ── Misc aliases kept for widget compatibility ────────────────────────────
+  static const Color appBackground = background;
+  static const Color appSurface    = surface;
+  static const Color field         = Color(0xFFF8FAFC); // input fill
+  static const Color fieldDark     = surfaceTint;
+  static const Color accentPurple  = Color(0xFF7C3AED);
+  static const Color divider       = borderLight;
+
+  // legacy scale aliases (kept so existing widget refs compile)
+  static const Color blue7  = Color(0xFF5B8CFF);
+  static const Color blue8  = primary;
+  static const Color blue9  = primaryDark;
+  static const Color blue10 = Color(0xFF1E3A8A);
+  static const Color white1 = surface;
+  static const Color white3 = Color(0xFFF5F6F8);
+  static const Color white4 = surfaceTint;
+  static const Color white5 = Color(0xFFE5E7EB);
+  static const Color white6 = Color(0xFFD1D5DB);
+  static const Color white7 = Color(0xFFBFC5CE);
+  static const Color white8 = textHint;
+  static const Color white9 = textSecondary;
+  static const Color text1  = textPrimary;
+  static const Color text2  = Color(0xFF1F2937);
+  static const Color text3  = Color(0xFF374151);
+  static const Color text4  = textSecondary;
+  static const Color text5  = Color(0xFF6B7280);
+  static const Color text6  = textHint;
+  static const Color text10 = onPrimary;
+  static const Color successDark  = Color(0xFF15803D);
+  static const Color errorDark    = Color(0xFFB91C1C);
+  static const Color warningDark  = Color(0xFFB45309);
+  static const Color infoDark     = Color(0xFF0369A1);
+  static const Color primaryHover   = primaryDark;
+  static const Color primaryPressed = Color(0xFF1E3A8A);
+  static const Color cardBackground = Color(0xFFFFFBF7);
+  static const Color inputBackground = field;
+  static const Color onDanger         = onPrimary;
+  static const Color textOnDark       = textPrimary;
+  static const Color textOnDark30     = Color(0x4D1F2937);
+  static const Color textOnDark54     = Color(0x8A1F2937);
+  static const Color textOnDark70     = Color(0xB31F2937);
+  static const Color borderLighter    = divider;
+  static const Color borderMuted      = white7;
+  static const Color borderStrong     = Color(0x40000000);
+  static const Color overlayLight     = Color(0x0A000000);
+  static const Color overlay          = Color(0x1A000000);
+  static const Color overlayStrong    = Color(0x33000000);
+  static const Color transparent      = Colors.transparent;
+  static const Color black54          = Color(0x8A000000);
+  static const Color warningDeep      = warningDark;
+  static const Color dangerDeep       = errorDark;
+
+  // skin scale (kept for belt badge)
   static const Color skin1  = Color(0xFFFFFBF7);
   static const Color skin2  = Color(0xFFFFF4EA);
   static const Color skin3  = Color(0xFFFFE9D6);
@@ -28,116 +101,4 @@ class AppColors {
   static const Color skin8  = Color(0xFFC98255);
   static const Color skin9  = Color(0xFF9E6344);
   static const Color skin10 = Color(0xFF7A4A33);
-
-  /* --------------------------------------------------------------------------
-   * WHITE / SURFACE SCALE (Layout & Elevation)
-   * ------------------------------------------------------------------------*/
-  static const Color white1  = Color(0xFFFFFFFF);
-  static const Color white2  = Color(0xFFFAFAFA);
-  static const Color white3  = Color(0xFFF5F6F8);
-  static const Color white4  = Color(0xFFF0F2F5);
-  static const Color white5  = Color(0xFFE5E7EB);
-  static const Color white6  = Color(0xFFD1D5DB);
-  static const Color white7  = Color(0xFFBFC5CE);
-  static const Color white8  = Color(0xFF9CA3AF);
-  static const Color white9  = Color(0xFF6B7280);
-  static const Color white10 = Color(0xFF374151);
-
-  /* --------------------------------------------------------------------------
-   * TEXT SCALE (Hierarchy & Accessibility)
-   * ------------------------------------------------------------------------*/
-  static const Color text1  = Color(0xFF0F172A); // Primary
-  static const Color text2  = Color(0xFF1F2937);
-  static const Color text3  = Color(0xFF374151);
-  static const Color text4  = Color(0xFF4B5563);
-  static const Color text5  = Color(0xFF6B7280);
-  static const Color text6  = Color(0xFF9CA3AF);
-  static const Color text7  = Color(0xFFCBD5E1);
-  static const Color text8  = Color(0xFFE5E7EB);
-  static const Color text9  = Color(0xFFF1F5F9);
-  static const Color text10 = Color(0xFFFFFFFF);
-
-  /* --------------------------------------------------------------------------
-   * STATUS COLORS (Calm, Non-Aggressive)
-   * ------------------------------------------------------------------------*/
-  // Success
-  static const Color successLight = Color(0xFFE6F4EA);
-  static const Color success = Color(0xFF4CAF73);
-  static const Color successDark = Color(0xFF2F855A);
-
-  // Warning
-  static const Color warningLight = Color(0xFFFFF6E5);
-  static const Color warning = Color(0xFFFFE4A1);
-  static const Color warningDark = Color(0xFFB7791F);
-
-  // Error
-  static const Color errorLight = Color(0xFFFDECEC);
-  static const Color error = Color(0xFFE05353);
-  static const Color errorDark = Color(0xFFB83232);
-
-  // Info
-  static const Color infoLight = Color(0xFFEFF6FF);
-  static const Color info = Color(0xFF3B82F6);
-  static const Color infoDark = Color(0xFF1E40AF);
-
-  /* --------------------------------------------------------------------------
-   * BORDERS / DIVIDERS / OVERLAYS
-   * ------------------------------------------------------------------------*/
-  static const Color borderLight = Color(0x14000000);
-  static const Color border = Color(0x26000000);
-  static const Color borderStrong = Color(0x40000000);
-
-  static const Color overlayLight = Color(0x0A000000);
-  static const Color overlay = Color(0x1A000000);
-  static const Color overlayStrong = Color(0x33000000);
-
-  /* --------------------------------------------------------------------------
-   * UTILITY
-   * ------------------------------------------------------------------------*/
-  static const Color transparent = Colors.transparent;
-  static const Color black54 = Color(0x8A000000);
-
-  /* --------------------------------------------------------------------------
-   * APP DEFAULT TOKENS (USE THESE EVERYWHERE)
-   * ------------------------------------------------------------------------*/
-  static const Color appBackground = Color.fromARGB(255, 255, 241, 220);
-  static const Color appSurface = white1;
-  static const Color cardBackground = skin1;
-  static const Color inputBackground = white3;
-
-  static const Color primary = blue8;
-  static const Color primaryHover = blue9;
-  static const Color primaryPressed = blue10;
-
-  static const Color textPrimary = text2;
-  static const Color textSecondary = text4;
-  static const Color textDisabled = text6;
-  static const Color onPrimary = text10;
-  static const Color onDanger = text10;
-
-  static const Color divider = borderLight;
-
-  /* --------------------------------------------------------------------------
-   * LEGACY ALIASES (BACKWARD COMPATIBILITY)
-   * ------------------------------------------------------------------------*/
-  static const Color background = appBackground;
-  static const Color surface = appSurface;
-  static const Color field = inputBackground;
-  static const Color fieldDark = white4;
-
-  static const Color primaryDark = primaryPressed;
-
-  static const Color textHint = textDisabled;
-  static const Color textOnDark = textPrimary;
-  static const Color textOnDark30 = Color(0x4D1F2937);
-  static const Color textOnDark38 = Color(0x611F2937);
-  static const Color textOnDark54 = Color(0x8A1F2937);
-  static const Color textOnDark70 = Color(0xB31F2937);
-
-  static const Color borderLighter = divider;
-  static const Color borderMuted = white7;
-
-  static const Color warningDeep = warningDark;
-  static const Color dangerDeep = errorDark;
-  static const Color accentPurple = blue7;
 }

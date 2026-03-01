@@ -11,6 +11,7 @@ import '../../widgets/belt_badge.dart';
 import '../../widgets/common/app_dropdown.dart';
 import '../../widgets/common/app_snackbar.dart';
 import '../../widgets/common/app_skeleton_loading.dart';
+import '../../widgets/common/app_buttons.dart';
 import '../../widgets/loading_overlay.dart';
 
 class MyProfileScreen extends StatefulWidget {
@@ -250,9 +251,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         onChanged: (v) => setState(() => _selectedLocation = v),
                       ),
                     const SizedBox(height: 28),
-                    ElevatedButton(
+                    AppLoadingButton(
+                      label: 'Save Changes',
+                      isLoading: _saving,
                       onPressed: _save,
-                      child: const Text('Save Changes'),
                     ),
                   ],
                 ],

@@ -43,6 +43,13 @@ class AdminShell extends StatelessWidget {
       path: '/admin/posts/create',
       matchPrefix: '/admin/posts',
     ),
+    AppNavItem(
+      icon: Icons.chat_bubble_outline_rounded,
+      activeIcon: Icons.chat_bubble_rounded,
+      label: 'Messages',
+      path: '/admin/messages',
+      matchPrefix: '/admin/messages',
+    ),
   ];
 
   @override

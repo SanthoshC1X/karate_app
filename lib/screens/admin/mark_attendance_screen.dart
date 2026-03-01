@@ -13,6 +13,7 @@ import '../../widgets/belt_badge.dart';
 import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/app_snackbar.dart';
 import '../../widgets/common/step_card.dart';
+import '../../widgets/common/app_buttons.dart';
 import '../../widgets/loading_overlay.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
@@ -44,13 +45,17 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
     try {
       final userProvider = context.read<UserProvider>();
       final attendanceProvider = context.read<AttendanceProvider>();
-      final students = await userProvider.fetchStudentsByLocation(_location!.id);
-      await attendanceProvider.fetchByDate(locationId: _location!.id, date: _date);
+      final students =
+          await userProvider.fetchStudentsByLocation(_location!.id);
+      await attendanceProvider.fetchByDate(
+          locationId: _location!.id, date: _date);
       final existing = attendanceProvider.getByDate(_location!.id, _date);
       final existingMap = {for (final a in existing) a.studentId: a.isPresent};
       setState(() {
         _students = students;
-        _presenceMap = {for (final s in students) s.id: existingMap[s.id] ?? false};
+        _presenceMap = {
+          for (final s in students) s.id: existingMap[s.id] ?? false
+        };
       });
     } catch (e) {
       if (mounted) {
@@ -129,7 +134,8 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text('Mark Attendance', style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
+          title: Text('Mark Attendance',
+              style: AppText.titleMd.copyWith(color: AppColors.textOnDark)),
         ),
         body: Column(
           children: [
@@ -151,15 +157,18 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                                 ? AppColors.success
                                 : active
                                     ? AppColors.primary
-                                    : AppColors.borderLight,
+                                    : AppColors.primary.withValues(alpha: 0.4),
                           ),
                           child: Center(
                             child: done
-                                ? const Icon(Icons.check, color: AppColors.textOnDark, size: 16)
+                                ? const Icon(Icons.check,
+                                    color: AppColors.textOnDark, size: 16)
                                 : Text(
                                     '${i + 1}',
                                     style: TextStyle(
-                                      color: active ? AppColors.textOnDark : AppColors.textOnDark38,
+                                      color: active
+                                          ? AppColors.textOnDark
+                                          : AppColors.textOnDark38,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -169,7 +178,9 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                           Expanded(
                             child: Container(
                               height: 2,
-                              color: done ? AppColors.success : AppColors.borderLight,
+                              color: done
+                                  ? AppColors.success
+                                  : AppColors.primary.withValues(alpha: 0.4),
                             ),
                           ),
                       ],
@@ -209,7 +220,8 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                           : _StepMark(
                               students: _students,
                               presenceMap: _presenceMap,
-                              onToggle: (id, v) => setState(() => _presenceMap[id] = v),
+                              onToggle: (id, v) =>
+                                  setState(() => _presenceMap[id] = v),
                               onSave: _save,
                               onBack: () => setState(() => _step = 1),
                               date: _date,
@@ -246,7 +258,8 @@ class _StepLocation extends StatelessWidget {
       );
     }
     if (error != null) {
-      return Center(child: Text(error!, style: const TextStyle(color: AppColors.error)));
+      return Center(
+          child: Text(error!, style: const TextStyle(color: AppColors.error)));
     }
     if (locations.isEmpty) {
       return const Center(
@@ -259,7 +272,8 @@ class _StepLocation extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(20),
-          child: Text('Step 1: Select Location', style: AppText.section.copyWith(color: AppColors.textOnDark)),
+          child: Text('Step 1: Select Location',
+              style: AppText.section.copyWith(color: AppColors.textOnDark)),
         ),
         Expanded(
           child: ListView.builder(
@@ -317,7 +331,8 @@ class _StepDate extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Step 2: Select Date', style: AppText.section.copyWith(color: AppColors.textOnDark)),
+          Text('Step 2: Select Date',
+              style: AppText.section.copyWith(color: AppColors.textOnDark)),
           const SizedBox(height: 24),
           GestureDetector(
             onTap: onPickDate,
@@ -327,11 +342,13 @@ class _StepDate extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today, color: AppColors.primary, size: 28),
+                  const Icon(Icons.calendar_today,
+                      color: AppColors.primary, size: 28),
                   const SizedBox(width: 16),
                   Text(
                     DateFormat('EEEE, MMMM d yyyy').format(date),
@@ -348,21 +365,33 @@ class _StepDate extends StatelessWidget {
           const Spacer(),
           Row(
             children: [
-              OutlinedButton(
-                onPressed: onBack,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textOnDark54,
-                  side: const BorderSide(color: AppColors.borderMuted),
-                  minimumSize: const Size(100, 48),
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: onBack,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      side: const BorderSide(
+                        color: AppColors.borderStrong,
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Back',
+                      style: AppText.button
+                          .copyWith(color: AppColors.textSecondary),
+                    ),
+                  ),
                 ),
-                child: const Text('Back'),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: onNext,
-                  child: const Text('Load Students'),
-                ),
+                child:
+                    AppPrimaryButton(label: 'Load Students', onPressed: onNext),
               ),
             ],
           ),
@@ -398,21 +427,16 @@ class _StepMark extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Text('Step 3: Mark Attendance', style: AppText.section.copyWith(color: AppColors.textOnDark)),
+            Text('Step 3: Mark Attendance',
+                style: AppText.section.copyWith(color: AppColors.textOnDark)),
             const SizedBox(height: 32),
-            const Icon(Icons.people_outline, size: 64, color: AppColors.textOnDark30),
+            const Icon(Icons.people_outline,
+                size: 64, color: AppColors.textOnDark30),
             const SizedBox(height: 16),
-            const Text('No students at this location', style: TextStyle(color: AppColors.textOnDark54)),
+            const Text('No students at this location',
+                style: TextStyle(color: AppColors.textOnDark54)),
             const Spacer(),
-            OutlinedButton(
-              onPressed: onBack,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textOnDark54,
-                side: const BorderSide(color: AppColors.borderMuted),
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: const Text('Back'),
-            ),
+            AppMutedButton(label: 'Back', onPressed: onBack),
           ],
         ),
       );
@@ -425,11 +449,13 @@ class _StepMark extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Step 3: Mark Attendance', style: AppText.section.copyWith(color: AppColors.textOnDark)),
+              Text('Step 3: Mark Attendance',
+                  style: AppText.section.copyWith(color: AppColors.textOnDark)),
               const SizedBox(height: 4),
               Text(
                 '${location.name} - ${DateFormat('MMM d').format(date)} - $presentCount/${students.length} present',
-                style: const TextStyle(color: AppColors.textOnDark54, fontSize: 13),
+                style: const TextStyle(
+                    color: AppColors.textOnDark54, fontSize: 13),
               ),
             ],
           ),
@@ -454,19 +480,24 @@ class _StepMark extends StatelessWidget {
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        isPresent ? AppColors.success.withValues(alpha: 0.2) : AppColors.borderLight,
+                    backgroundColor: isPresent
+                        ? AppColors.success.withValues(alpha: 0.2)
+                        : AppColors.borderLight,
                     child: Text(
                       s.name[0].toUpperCase(),
                       style: TextStyle(
-                        color: isPresent ? AppColors.success : AppColors.textOnDark38,
+                        color: isPresent
+                            ? AppColors.success
+                            : AppColors.textOnDark38,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   title: Text(
                     s.name,
-                    style: const TextStyle(color: AppColors.textOnDark, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        color: AppColors.textOnDark,
+                        fontWeight: FontWeight.w600),
                   ),
                   subtitle: BeltBadge(beltLevel: s.beltLevel, size: 11),
                   trailing: Switch(
@@ -489,19 +520,22 @@ class _StepMark extends StatelessWidget {
               OutlinedButton(
                 onPressed: onBack,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textOnDark54,
-                  side: const BorderSide(color: AppColors.borderMuted),
-                  minimumSize: const Size(100, 48),
+                  foregroundColor: AppColors.textSecondary,
+                  side: const BorderSide(color: AppColors.border),
+                  minimumSize: const Size(100, 50),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Back'),
+                child: Text('Back',
+                    style: AppText.button
+                        .copyWith(color: AppColors.textSecondary)),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onSave,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Save Attendance'),
-                ),
+                child: AppPrimaryButton(
+                    label: 'Save Attendance',
+                    onPressed: onSave,
+                    icon: Icons.save),
               ),
             ],
           ),

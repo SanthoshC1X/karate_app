@@ -28,6 +28,13 @@ class StudentShell extends StatelessWidget {
       path: '/student/attendance',
       matchPrefix: '/student/attendance',
     ),
+    AppNavItem(
+      icon: Icons.chat_bubble_outline_rounded,
+      activeIcon: Icons.chat_bubble_rounded,
+      label: 'Chat',
+      path: '/student/chat',
+      matchPrefix: '/student/chat',
+    ),
   ];
 
   @override

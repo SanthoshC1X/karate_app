@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
 import 'api_client.dart';
+import 'notification_service.dart';
 
 enum AuthChangeEvent { initialSession, signedIn, signedOut }
 
@@ -34,6 +35,9 @@ class AuthService {
       try {
         final profile = await getCurrentUserProfile();
         _currentUserId = profile?.id;
+        if (_currentUserId != null) {
+          await NotificationService.instance.init(_currentUserId!);
+        }
       } catch (_) {
         await signOut();
       }
@@ -68,6 +72,10 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
     _authController.add(const AuthState(AuthChangeEvent.signedIn));
+
+    if (_currentUserId != null) {
+      await NotificationService.instance.init(_currentUserId!);
+    }
 
     return UserModel.fromMap(userMap);
   }
@@ -157,6 +165,7 @@ class AuthService {
   }
 
   Future<void> signOut() async {
+    await NotificationService.instance.dispose();
     _api.setToken(null);
     _currentUserId = null;
     final prefs = await SharedPreferences.getInstance();

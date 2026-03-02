@@ -58,11 +58,11 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String name,
     int? age,
-    required String beltLevel,
     String? phone,
     String? locationId,
     List<String>? masterIds,
     List<String>? classIds,
+    List<Map<String, String>>? rankValues,
   }) async {
     _isLoading = true;
     _error = null;
@@ -73,11 +73,11 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         name: name,
         age: age,
-        beltLevel: beltLevel,
         phone: phone,
         locationId: locationId,
         masterIds: masterIds,
         classIds: classIds,
+        rankValues: rankValues,
       );
       _currentUser = user;
       return user;
@@ -99,7 +99,8 @@ class AuthProvider extends ChangeNotifier {
     required List<String> locationIds,
     List<Map<String, String?>>? newLocations,
     List<String>? classIds,
-    List<Map<String, String?>>? newClasses,
+    List<Map<String, dynamic>>? newClasses,
+    Map<String, List<Map<String, dynamic>>>? classRankFields,
   }) async {
     _isLoading = true;
     _error = null;
@@ -115,6 +116,7 @@ class AuthProvider extends ChangeNotifier {
         newLocations: newLocations,
         classIds: classIds,
         newClasses: newClasses,
+        classRankFields: classRankFields,
       );
       _currentUser = user;
       return user;

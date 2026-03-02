@@ -13,6 +13,8 @@
 drop table if exists public.class_schedules        cascade;
 drop table if exists public.belt_promotion_history  cascade;
 drop table if exists public.payments               cascade;
+drop table if exists public.student_rank_values    cascade;
+drop table if exists public.class_rank_fields      cascade;
 drop table if exists public.messages               cascade;
 drop table if exists public.conversations          cascade;
 drop table if exists public.attendance             cascade;
@@ -337,6 +339,53 @@ create or replace trigger messages_sync_conversation
 
 
 -- ============================================================
+-- TABLE: class_rank_fields  (master-defined custom fields per class)
+-- Masters can define text or select fields for each class they teach,
+-- so students can fill in their level/details at registration time.
+-- ============================================================
+create table public.class_rank_fields (
+  id          uuid        primary key default gen_random_uuid(),
+  class_id    uuid        not null,
+  master_id   uuid        not null,
+  field_label text        not null,
+  field_type  text        not null default 'text',  -- 'text' | 'select'
+  options     text[]      not null default '{}',     -- used when field_type = 'select'
+  order_index integer     not null default 0,
+  created_at  timestamptz not null default now(),
+  constraint crf_class_fkey
+    foreign key (class_id)
+    references public.classes(id)
+    on delete cascade,
+  constraint crf_master_fkey
+    foreign key (master_id)
+    references public.users(id)
+    on delete cascade
+);
+
+
+-- ============================================================
+-- TABLE: student_rank_values  (students' answers to rank fields)
+-- One row per (student, field) pair — unique constraint prevents dupes.
+-- ============================================================
+create table public.student_rank_values (
+  id         uuid        primary key default gen_random_uuid(),
+  student_id uuid        not null,
+  field_id   uuid        not null,
+  value      text        not null,
+  created_at timestamptz not null default now(),
+  constraint srv_student_field_key unique (student_id, field_id),
+  constraint srv_student_fkey
+    foreign key (student_id)
+    references public.users(id)
+    on delete cascade,
+  constraint srv_field_fkey
+    foreign key (field_id)
+    references public.class_rank_fields(id)
+    on delete cascade
+);
+
+
+-- ============================================================
 -- FUTURE TABLES  (schema ready, no UI/API yet — do not delete)
 -- ============================================================
 
@@ -434,6 +483,10 @@ create index idx_conv_master  on public.conversations(master_id,  last_message_a
 -- messages
 create index idx_msg_conv   on public.messages(conversation_id, created_at asc);
 create index idx_msg_unread on public.messages(conversation_id, is_read) where is_read = false;
+
+-- class_rank_fields / student_rank_values
+create index idx_crf_class_master on public.class_rank_fields(class_id, master_id);
+create index idx_srv_student      on public.student_rank_values(student_id);
 
 -- payments (future)
 create index idx_pay_student on public.payments(student_id, paid_for_month desc);

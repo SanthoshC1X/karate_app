@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1021600829526",
+    "project_id": "mentorx-2db18",
+    "storage_bucket": "mentorx-2db18.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021600829526:android:dacd6ed979dbe4dedfabf7",
+        "android_client_info": {
+          "package_name": "com.example.MentorX"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUKv8-t1qx7F7Nihjz6d0gi-k2jB5jsko"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

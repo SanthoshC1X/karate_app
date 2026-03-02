@@ -12,7 +12,7 @@ class BrandMark extends StatelessWidget {
     this.size = 80,
     this.iconSize = 42,
     this.glowOpacity = 0.4,
-    this.assetPath = 'assets/karate_logo.png',
+    this.assetPath = 'assets/MentorX_logo.png',
   });
 
   @override

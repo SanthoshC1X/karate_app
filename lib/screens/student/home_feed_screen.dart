@@ -46,7 +46,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> with SingleTickerProvid
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Karate Class',
+              'MentorX',
               style: AppText.r.copyWith(
                 fontWeight: FontWeight.w900,
                 fontSize: 18,

@@ -18,11 +18,11 @@ Future<void> main() async {
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
-  runApp(const KarateApp());
+  runApp(const MentorXApp());
 }
 
-class KarateApp extends StatelessWidget {
-  const KarateApp({super.key});
+class MentorXApp extends StatelessWidget {
+  const MentorXApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class KarateApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp.router(
-        title: 'Karate Class',
+        title: 'MentorX',
         debugShowCheckedModeBanner: false,
         theme: _buildTheme(),
         routerConfig: appRouter,

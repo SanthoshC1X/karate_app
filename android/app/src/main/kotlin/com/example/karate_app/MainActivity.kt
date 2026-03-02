@@ -1,4 +1,4 @@
-package com.example.karate_app
+package com.example.MentorX
 
 import io.flutter.embedding.android.FlutterActivity
 

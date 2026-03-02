@@ -67,7 +67,6 @@ flutter:
 
   assets:
     - .env
-    - assets/karate_logo.png
     - assets/MentorX_logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

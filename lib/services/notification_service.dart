@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -96,8 +97,9 @@ class NotificationService {
   Future<void> _saveToken(String token) async {
     try {
       await ApiClient.instance.post('/auth/fcm-token', body: {'token': token});
-    } catch (_) {
-      // Non-fatal — push just won't work until next token refresh.
+      debugPrint('[NotificationService] FCM token saved to backend ✓');
+    } catch (e) {
+      debugPrint('[NotificationService] Failed to save FCM token: $e');
     }
   }
 

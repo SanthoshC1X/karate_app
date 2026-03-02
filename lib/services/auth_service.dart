@@ -117,6 +117,10 @@ class AuthService {
     await prefs.setString(_tokenKey, token);
     _authController.add(const AuthState(AuthChangeEvent.signedIn));
 
+    if (_currentUserId != null) {
+      await NotificationService.instance.init(_currentUserId!);
+    }
+
     return UserModel.fromMap(userMap);
   }
 
@@ -160,6 +164,10 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
     _authController.add(const AuthState(AuthChangeEvent.signedIn));
+
+    if (_currentUserId != null) {
+      await NotificationService.instance.init(_currentUserId!);
+    }
 
     return UserModel.fromMap(userMap);
   }

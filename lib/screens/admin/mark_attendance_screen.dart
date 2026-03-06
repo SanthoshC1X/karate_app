@@ -14,6 +14,7 @@ import '../../widgets/common/app_skeleton_loading.dart';
 import '../../widgets/common/app_snackbar.dart';
 import '../../widgets/common/step_card.dart';
 import '../../widgets/common/app_buttons.dart';
+import '../../widgets/common/app_date_picker.dart';
 import '../../widgets/loading_overlay.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
@@ -105,20 +106,11 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
+    final picked = await AppDatePicker.pick(
+      context,
       initialDate: _date,
       firstDate: DateTime(2024),
       lastDate: DateTime.now(),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.primaryDark,
-            surface: AppColors.primary,
-          ),
-        ),
-        child: child!,
-      ),
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -343,12 +335,12 @@ class _StepDate extends StatelessWidget {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border:
-                    Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                    Border.all(color: AppColors.borderStrong, width: 1.2),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.calendar_today,
-                      color: AppColors.primary, size: 28),
+                      color: AppColors.textOnDark, size: 28),
                   const SizedBox(width: 16),
                   Text(
                     DateFormat('EEEE, MMMM d yyyy').format(date),
@@ -517,18 +509,25 @@ class _StepMark extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              OutlinedButton(
-                onPressed: onBack,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textSecondary,
-                  side: const BorderSide(color: AppColors.border),
-                  minimumSize: const Size(100, 50),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: onBack,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      side: const BorderSide(
+                        color: AppColors.borderStrong,
+                        width: 1.2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Back',
+                        style: AppText.button
+                            .copyWith(color: AppColors.textSecondary)),
+                  ),
                 ),
-                child: Text('Back',
-                    style: AppText.button
-                        .copyWith(color: AppColors.textSecondary)),
               ),
               const SizedBox(width: 12),
               Expanded(

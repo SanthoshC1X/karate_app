@@ -9,6 +9,13 @@ class AdminShell extends StatelessWidget {
 
   static const List<AppNavItem> _navItems = [
     AppNavItem(
+      icon: Icons.chat_bubble_outline_rounded,
+      activeIcon: Icons.chat_bubble_rounded,
+      label: 'Messages',
+      path: '/admin/messages',
+      matchPrefix: '/admin/messages',
+    ),
+    AppNavItem(
       icon: Icons.dashboard_outlined,
       activeIcon: Icons.dashboard,
       label: 'Dashboard',
@@ -16,39 +23,18 @@ class AdminShell extends StatelessWidget {
       matchPrefix: '/admin/dashboard',
     ),
     AppNavItem(
-      icon: Icons.location_on_outlined,
-      activeIcon: Icons.location_on,
-      label: 'Locations',
-      path: '/admin/locations',
-      matchPrefix: '/admin/locations',
+      icon: Icons.payment_outlined,
+      activeIcon: Icons.payment,
+      label: 'Payment',
+      path: '/admin/payment',
+      matchPrefix: '/admin/payment',
     ),
     AppNavItem(
-      icon: Icons.people_outline,
-      activeIcon: Icons.people,
-      label: 'Students',
-      path: '/admin/students',
-      matchPrefix: '/admin/students',
-    ),
-    AppNavItem(
-      icon: Icons.fact_check_outlined,
-      activeIcon: Icons.fact_check,
-      label: 'Attendance',
-      path: '/admin/attendance',
-      matchPrefix: '/admin/attendance',
-    ),
-    AppNavItem(
-      icon: Icons.post_add_outlined,
-      activeIcon: Icons.post_add,
-      label: 'Posts',
-      path: '/admin/posts/create',
-      matchPrefix: '/admin/posts',
-    ),
-    AppNavItem(
-      icon: Icons.chat_bubble_outline_rounded,
-      activeIcon: Icons.chat_bubble_rounded,
-      label: 'Messages',
-      path: '/admin/messages',
-      matchPrefix: '/admin/messages',
+      icon: Icons.person_outline,
+      activeIcon: Icons.person,
+      label: 'Profile',
+      path: '/admin/profile',
+      matchPrefix: '/admin/profile',
     ),
   ];
 

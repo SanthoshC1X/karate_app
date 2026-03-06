@@ -8,6 +8,7 @@ import 'providers/attendance_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/location_provider.dart';
 import 'providers/chat_provider.dart';
+import 'providers/payment_provider.dart';
 import 'providers/post_provider.dart';
 import 'providers/user_provider.dart';
 import 'router.dart';
@@ -37,6 +38,7 @@ class MentorXApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PostProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: MaterialApp.router(
         title: 'MentorX',

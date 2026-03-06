@@ -13,6 +13,7 @@ class UserModel {
   final List<String> classIds;
   final List<String> masterClassIds;
   final String? bio;
+  final String? profilePictureUrl;
   final DateTime createdAt;
 
   static const List<String> beltLevels = [
@@ -40,6 +41,7 @@ class UserModel {
     this.classIds = const [],
     this.masterClassIds = const [],
     this.bio,
+    this.profilePictureUrl,
     required this.createdAt,
   }) : member = member ??
             (role == 'super_admin'
@@ -79,6 +81,7 @@ class UserModel {
               .toList() ??
           const [],
       bio: map['bio'] as String?,
+      profilePictureUrl: map['profile_picture_url'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
@@ -98,6 +101,7 @@ class UserModel {
       'master_class_ids': masterClassIds,
       'location_ids': locationIds,
       'bio': bio,
+      'profile_picture_url': profilePictureUrl,
     };
   }
 
@@ -114,6 +118,7 @@ class UserModel {
     List<String>? masterClassIds,
     List<String>? locationIds,
     String? bio,
+    String? profilePictureUrl,
   }) {
     return UserModel(
       id: id,
@@ -130,6 +135,7 @@ class UserModel {
       masterClassIds: masterClassIds ?? this.masterClassIds,
       locationIds: locationIds ?? this.locationIds,
       bio: bio ?? this.bio,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       createdAt: createdAt,
     );
   }

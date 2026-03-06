@@ -10,11 +10,15 @@ import 'screens/admin/students_list_screen.dart';
 import 'screens/admin/student_detail_screen.dart';
 import 'screens/admin/mark_attendance_screen.dart';
 import 'screens/admin/create_post_screen.dart';
+import 'screens/admin/payment_screen.dart';
+import 'screens/admin/student_payment_history_screen.dart';
+import 'screens/admin/master_profile_screen.dart';
 import 'screens/student/student_shell.dart';
 import 'screens/student/home_feed_screen.dart';
 import 'screens/student/my_profile_screen.dart';
 import 'screens/student/my_attendance_screen.dart';
 import 'screens/student/post_detail_screen.dart';
+import 'screens/student/student_payment_screen.dart';
 import 'screens/shared/conversations_screen.dart';
 import 'screens/shared/chat_screen.dart';
 import 'models/conversation_model.dart';
@@ -80,6 +84,25 @@ final appRouter = GoRouter(
           path: '/admin/messages',
           builder: (_, __) => const ConversationsScreen(),
         ),
+        GoRoute(
+          path: '/admin/payment',
+          builder: (_, __) => const PaymentScreen(),
+        ),
+        GoRoute(
+          path: '/admin/payment/student/:studentId',
+          builder: (_, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            return StudentPaymentHistoryScreen(
+              studentId: state.pathParameters['studentId']!,
+              studentName: extra['name'] as String? ?? 'Student',
+              initialYear: extra['year'] as int? ?? DateTime.now().year,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/admin/profile',
+          builder: (_, __) => const MasterProfileScreen(),
+        ),
       ],
     ),
     ShellRoute(
@@ -105,6 +128,10 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/student/chat',
           builder: (_, __) => const ConversationsScreen(),
+        ),
+        GoRoute(
+          path: '/student/payment',
+          builder: (_, __) => const StudentPaymentScreen(),
         ),
       ],
     ),

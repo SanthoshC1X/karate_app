@@ -35,6 +35,13 @@ class StudentShell extends StatelessWidget {
       path: '/student/chat',
       matchPrefix: '/student/chat',
     ),
+    AppNavItem(
+      icon: Icons.payment_outlined,
+      activeIcon: Icons.payment,
+      label: 'Payment',
+      path: '/student/payment',
+      matchPrefix: '/student/payment',
+    ),
   ];
 
   @override

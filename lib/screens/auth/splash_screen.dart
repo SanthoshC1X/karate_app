@@ -5,7 +5,6 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../widgets/common/brand_mark.dart';
-import '../../widgets/common/app_skeleton_loading.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -83,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               const SizedBox(height: 32),
               Text(
-                'KARATE CLASS',
+                'MentorX',
                 style: AppText.titleLg.copyWith(
                   fontSize: 32,
                   fontWeight: FontWeight.w900,
@@ -95,11 +94,7 @@ class _SplashScreenState extends State<SplashScreen>
                 'train. discipline. achieve.',
                 style: AppText.caption.copyWith(fontSize: 14, letterSpacing: 2),
               ),
-              const SizedBox(height: 60),
-              const SizedBox(
-                width: 90,
-                child: AppSkeletonLoading(height: 10),
-              ),
+    
             ],
           ),
         ),

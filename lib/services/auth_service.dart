@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
 import 'api_client.dart';
+import 'notification_service.dart';
 
 enum AuthChangeEvent { initialSession, signedIn, signedOut }
 
@@ -34,6 +35,9 @@ class AuthService {
       try {
         final profile = await getCurrentUserProfile();
         _currentUserId = profile?.id;
+        if (_currentUserId != null) {
+          await NotificationService.instance.init(_currentUserId!);
+        }
       } catch (_) {
         await signOut();
       }
@@ -69,6 +73,10 @@ class AuthService {
     await prefs.setString(_tokenKey, token);
     _authController.add(const AuthState(AuthChangeEvent.signedIn));
 
+    if (_currentUserId != null) {
+      await NotificationService.instance.init(_currentUserId!);
+    }
+
     return UserModel.fromMap(userMap);
   }
 
@@ -77,22 +85,23 @@ class AuthService {
     required String password,
     required String name,
     int? age,
-    required String beltLevel,
     String? phone,
     String? locationId,
     List<String>? masterIds,
     List<String>? classIds,
+    List<Map<String, String>>? rankValues,
   }) async {
     final data = await _api.post('/auth/register', body: {
       'email': email,
       'password': password,
       'name': name,
       'age': age,
-      'belt_level': beltLevel,
       'phone': phone,
       'location_id': locationId,
       'master_ids': masterIds ?? const <String>[],
       'class_ids': classIds ?? const <String>[],
+      if (rankValues != null && rankValues.isNotEmpty)
+        'rank_values': rankValues,
     }) as Map<String, dynamic>;
 
     final token = data['token'] as String?;
@@ -108,6 +117,10 @@ class AuthService {
     await prefs.setString(_tokenKey, token);
     _authController.add(const AuthState(AuthChangeEvent.signedIn));
 
+    if (_currentUserId != null) {
+      await NotificationService.instance.init(_currentUserId!);
+    }
+
     return UserModel.fromMap(userMap);
   }
 
@@ -120,7 +133,10 @@ class AuthService {
     required List<String> locationIds,
     List<Map<String, String?>>? newLocations,
     List<String>? classIds,
-    List<Map<String, String?>>? newClasses,
+    // Each map has 'name', 'description', and optionally 'rank_fields'
+    List<Map<String, dynamic>>? newClasses,
+    // Rank fields for existing selected classes, keyed by class_id
+    Map<String, List<Map<String, dynamic>>>? classRankFields,
   }) async {
     final data = await _api.post('/auth/register-master', body: {
       'email': email,
@@ -131,7 +147,9 @@ class AuthService {
       'location_ids': locationIds,
       'new_locations': newLocations ?? const <Map<String, String?>>[],
       'class_ids': classIds ?? const <String>[],
-      'new_classes': newClasses ?? const <Map<String, String?>>[],
+      'new_classes': newClasses ?? const <Map<String, dynamic>>[],
+      if (classRankFields != null && classRankFields.isNotEmpty)
+        'class_rank_fields': classRankFields,
     }) as Map<String, dynamic>;
 
     final token = data['token'] as String?;
@@ -147,10 +165,15 @@ class AuthService {
     await prefs.setString(_tokenKey, token);
     _authController.add(const AuthState(AuthChangeEvent.signedIn));
 
+    if (_currentUserId != null) {
+      await NotificationService.instance.init(_currentUserId!);
+    }
+
     return UserModel.fromMap(userMap);
   }
 
   Future<void> signOut() async {
+    await NotificationService.instance.dispose();
     _api.setToken(null);
     _currentUserId = null;
     final prefs = await SharedPreferences.getInstance();

@@ -1,11 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 import 'providers/attendance_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/location_provider.dart';
 import 'providers/chat_provider.dart';
+import 'providers/payment_provider.dart';
 import 'providers/post_provider.dart';
 import 'providers/user_provider.dart';
 import 'router.dart';
@@ -14,15 +17,16 @@ import 'theme/app_text.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
-  runApp(const KarateApp());
+  runApp(const MentorXApp());
 }
 
-class KarateApp extends StatelessWidget {
-  const KarateApp({super.key});
+class MentorXApp extends StatelessWidget {
+  const MentorXApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +38,10 @@ class KarateApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PostProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: MaterialApp.router(
-        title: 'Karate Class',
+        title: 'MentorX',
         debugShowCheckedModeBanner: false,
         theme: _buildTheme(),
         routerConfig: appRouter,

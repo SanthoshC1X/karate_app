@@ -26,11 +26,11 @@ class ApiClient {
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'http://192.168.1.9:4000';
+        return 'http://192.168.1.72:4000';
       case TargetPlatform.iOS:
         return 'http://localhost:4000';
       default:
-        return 'http://192.168.1.9:4000';
+        return 'http://192.168.1.7:4000';
     }
   }
 

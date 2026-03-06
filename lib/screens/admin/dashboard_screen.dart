@@ -119,11 +119,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DashboardStatCard(
-                    icon: Icons.upcoming_outlined,
-                    label: 'Upcoming',
-                    value: posts.isLoading
-                        ? '--'
-                        : '${posts.posts.where((e) => e.isUpcoming).length}',
+                    icon: Icons.payment_outlined,
+                    label: 'Payments',
+                    value: 'Not Yet',
                     color: AppColors.accentPurple,
                   ),
                 ),
